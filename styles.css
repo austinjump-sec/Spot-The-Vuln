@@ -1,0 +1,353 @@
+:root {
+  --primary: #5cfa23; /* Neon Green */
+  --bg-dark: #0d1117;
+  --glass: rgba(255, 255, 255, 0.05);
+  --border: rgba(92, 250, 35, 0.2);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-dark);
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+#stack > div > span {
+  display: inline-block;
+  min-width: 100px;
+}
+#title-container img { margin-left: 10px; width: 40px; height: 40px; }
+.light-letter {
+    font-family: 'Courier New', monospace;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #1a1a1a; /* Off color when not pwned */
+    text-shadow: none;
+    transition: all 0.3s ease;
+}
+
+/* The "Pwned" State */
+.light-letter.active {
+    color: #6fff00;
+    text-shadow: 0 0 10px #6fff00, 0 0 20px #6fff00;
+    transform: scale(1.2);
+    animation: flicker 0.1s infinite alternate;
+}
+
+@keyframes flicker {
+    from { opacity: 0.8; }
+    to { opacity: 1; }
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(1.2); opacity: 1; }
+}
+#background {
+  width: 90%;
+  max-width: 800px;
+  padding: 40px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  /*background-image: url('https://mir-s3-cdn-cf.behance.net/project_modules/disp/e4316a93890387.5e70ade47b737.gif');*/
+}
+#timer button {
+  /* no display:none or visibility:hidden */
+  cursor: pointer;
+}
+#timerButtons[hidden] {
+  display: none;
+}
+#terminal {
+  display: flex;
+  flex-direction: column;
+  height: 100px; /* Or whatever fixed height you want */
+  background-color: #0d0d0d;
+  border: 2px solid #333;
+  color: #6fff00;
+  padding: 10px;
+  overflow: hidden; /* Terminal itself shouldn't scroll */
+}
+
+#terminal-content {
+  flex-grow: 1;      /* Takes up all remaining space */
+  overflow-y: auto;  /* Only this part scrolls */
+  margin-bottom: 10px;
+  flex: 1;
+  color: #6fff00;
+  font-size: 1rem;
+  word-wrap: break-word; /* Prevents huge strings from breaking layout */
+}
+#termInput {
+    flex-shrink: 0;
+    color: #00ff41;
+    border: none;
+    border-top: 1px solid #222;
+    padding: 8px; /* Changed from padding-top to keep it even */
+    font-family: monospace;
+    outline: none;
+    width: 100%;
+    
+    /* FIXES START HERE */
+    background-color: #000000 !important; /* Force true black */
+    display: block;                       /* Ensures it behaves as a box */
+    box-sizing: border-box;               /* Prevents width 100% from leaking outside parent */
+}
+
+
+/* Optional: Authentic Scanline effect */
+#terminal::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 2;
+  background-size: 100% 4px, 3px 100%;
+  pointer-events: none;
+}
+
+#termInput {
+  flex-shrink: 0;    /* Prevents the input from being squished */
+  background: transparent;
+  color: #00ff41;
+  border: none;
+  border-top: 1px solid #222;
+  padding-top: 8px;
+  font-family: monospace;
+  outline: none;
+  width: 100%;
+  min-height: 10px;
+  resize: none;
+}
+
+
+/* Optional: Authentic Scanline effect */
+#terminal::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 2;
+  background-size: 100% 4px, 3px 100%;
+  pointer-events: none;
+}
+
+/* Custom Scrollbar for the terminal */
+#terminal::-webkit-scrollbar {
+  width: 8px;
+}
+#terminal::-webkit-scrollbar-track {
+  background: #050505;
+}
+#terminal::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 4px;
+}
+#terminal::-webkit-scrollbar-thumb:hover {
+  background: #00ff41;
+}
+
+#timerButtons {
+  display: flex;
+  align-items: center; /* Vertically centers text with buttons */
+  gap: 10px;          /* Space between p and buttons */
+  font-family: sans-serif;
+}
+
+#tChallenge {
+  font-size: 0.85rem;   /* Small enough to read, not in the way */
+  color: #39FF14;      /* Neon Green */
+  margin: 0;           /* Removes default paragraph spacing */
+  font-weight: bold;
+}
+
+#timerButtons button {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+h1 {
+  font-size: 2.5rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px var(--primary);
+}
+
+#code {
+  background: #000;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  border-left: 4px solid var(--primary);
+  text-align: left;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+  white-space: pre-wrap;
+  font-family: Monospace;
+  color: #03fc49;
+}
+.code-line {
+    padding: 2px 5px;
+    font-family: monospace;
+    white-space: pre; /* Keeps assembly spacing */
+}
+
+#title-container {
+  display: inline-flex;
+  align-items: center;
+  color: #2bff00; /* Green text color for title */
+}
+
+
+#btns {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Centers the tabs */
+  gap: 30px;
+  padding: 15px 0;
+  background: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
+  backdrop-filter: blur(5px); /* Modern blur effect */
+  z-index: 100;
+}
+
+#btns button {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent; /* Invisible border by default */
+  color: rgba(3, 252, 73, 0.5); /* Subtle dim green text */
+  font-family: monospace;
+  font-size: 1rem;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Hover effect */
+#btns button:hover {
+  color: #03fc49; /* Bright green on hover */
+  border-bottom: 2px solid rgba(3, 252, 73, 0.4);
+}
+
+/* The active "current" tab highlight */
+#btns button.active {
+  color: #03fc49;
+  border-bottom: 2px solid #03fc49;
+  text-shadow: 0 0 8px rgba(3, 252, 73, 0.6);
+}
+
+
+/* The vertical "CHALLENGES" toggle button */
+#challengesLoad {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 11;
+  background: #000;
+  color: #03fc49;
+  border: 1px solid #03fc49;
+  cursor: pointer;
+  padding: 10px 5px;
+  
+}
+/* The animation definition */
+@keyframes terminal-flash {
+  0% { background-color: rgba(255, 0, 0, 0); }
+  50% { background-color: rgba(255, 0, 0, 0.7); }
+  100% { background-color: rgba(255, 0, 0, 0); }
+}
+
+/* The class we will add via JS */
+.error-flicker {
+  animation: terminal-flash 0.2s ease-in-out 3; /* Flashes 3 times in 0.6s */
+}
+
+ button {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+    font-family: monospace;
+}
+#dynamic-dropdown {
+    position: absolute;
+    display: none;
+    background: #000;
+    border: 1px solid #2bff00;
+    box-shadow: 0px 5px 15px rgba(43, 255, 0, 0.3);
+    z-index: 1000;
+    min-width: 200px;
+    font-family: monospace;
+}
+
+#dynamic-dropdown.show {
+    display: block;
+}
+
+.dropdown-header {
+    background: #2bff00;
+    color: #000;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.dropdown-item {
+    padding: 10px;
+    color: #2bff00;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #1a3300;
+}
+
+.dropdown-item:hover {
+    background: #13fc03;
+    color: #000;
+}
+
+.lvl-diff {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+#btns button:hover {
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 0 15px var(--primary);
+}
+#h5{
+    font-family: monospace;
+}
+#pel{
+    font-family: monospace;
+}
+textarea {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  color: white;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+  border: 2px solid #2bff00;
+}
