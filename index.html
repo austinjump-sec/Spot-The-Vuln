@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Spot The Vuln</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id='background'>
+      <div id='title-container'>
+      <h1 id='titl'>Spot The Vuln</h1>
+      <img src='https://cdn-icons-png.flaticon.com/512/3722/3722195.png'>
+      </div>
+      <p id='pel'style='color: #2bff00;   background-color: black;'>Spot Program Vulnerabilities and Level Up Your Reverse Engineer Skills!</p>
+     <div id="debugger-ui" hidden style="display: flex; gap: 20px; color: #03fc49; font-family: monospace;">
+  <div id="registers">
+    <h4 id='reg4' hidden>Registers</h4>
+  </div>
+  <div id="stack" >
+    <h4 id='stack4' hidden >Stack</h4>
+    <div><span id="stack-addr"></span> <span id="stack-val"></span></div>
+  </div>
+</div>
+<div id="debugger-controls" hidden style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+  <button id="prev-step" hidden>Prev Step</button>
+  <button id="next-step" hidden>Next Step</button>
+  <p id='lineTracker' style='color: #13fc03' hidden></p>
+</div>
+<dialog id='jscode'></dialog>
+<dialog id='phpcode'></dialog>
+<dialog id='sqlcode'></dialog>
+<dialog id='ccode'></dialog>
+<dialog id='asmlcode'></dialog>
+<dialog id='asmcode'></dialog>
+<div id='code' hidden></div>
+<div id='vuln-lights'></div>
+<div hidden id="timer" style="color: #03fc49; font-family: monospace; margin: 10px 0; font-size: 1.2rem;">Time: 00:00</div>
+<div id='timerButtons' hidden> <p id='tChallenge'>Optional Timer Challenges</p> <button  title='Script Kiddie (5m)'id='slow'>🐢</button><button title='Hacker (3m)'id='medium'>🐇</button><button title ='NSA (60s)'id='fast'>🚀</button><button title='CPU (30s)' id='impossible'>🔲</button></div>
+
+      <h5 id='h5' hidden style='color: #03fc49;   background-color: black;'>Which line is insecure? If the answer is multiple, please answer one at a time.</h3>
+      <div id='terminal'>
+        <div id='termContent'>
+          
+        </div>
+      </div>
+      
+        <textarea id='termInput' placeholder='Enter Insecure Line Number Here (or y/n for prompts)'></textarea><button id='submit'hidden >Submit</button>
+      <!-- Add pwned animation across lights when all light up as encouragement to solve !-->
+      <!-- Merge submit and enter functions for termInput !--> 
+      </div>
+      <div id='btns'>
+      <!--add oauth account signup here !-->
+        <button id='js'>JavaScript</button> <button id='php'>PHP</button> 
+        <button id='sql'>SQL</button><button id='c'>C</button> 
+        <button id='asm'>Assembly x86</button> 
+      </div>
+      <div id='rightButton'></div>
+      <button id='challengesLoad'>A<br>C<br>C<br>O<br>U<br>N<br>T<br></button>
+      <div id='accountMenu'>
+      <!--add oauth account status here !-->
+      </div>
+      <script src="script.js"></script>
+  </body>
+</html>
