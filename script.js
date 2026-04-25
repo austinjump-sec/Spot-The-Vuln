@@ -1,5 +1,35 @@
-appendToTerminal("root@spotthevuln:~# ./start_game.sh");
-appendToTerminal("root@spotthevuln:~# Welcome, User! Select a language above to begin!")
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDJuvpBpGHiNwzBnQzFaHcgBddShoWJcMo",
+        authDomain: "spot-the-vuln.firebaseapp.com",
+        projectId: "spot-the-vuln",
+        storageBucket: "spot-the-vuln.firebasestorage.app",
+        messagingSenderId: "537987867600",
+        appId: "1:537987867600:web:b1a134ea3716310f8b8fd5",
+        measurementId: "G-ELM7B47KWF"
+      };
+      firebase.initializeApp(firebaseConfig);
+      let ui = new firebaseui.auth.AuthUI(firebase.auth());
+      ui.start('#firebaseui-auth-container', {
+        signInOptions: [
+          firebase.auth.GithubAuthProvider.PROVIDER_ID
+        ],
+        signInSuccessUrl: 'index.html',
+      });
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    console.log("User signed in:", user);
+    ui.reset()
+    // Show logged-in user's info and enable features
+    // Example: display username/email in accountMenu div
+    const accountMenu = document.getElementById('accountMenu');
+    accountMenu.textContent = `Welcome, ${user.displayName || user.email} (GitHub)`;
+  } else {
+    console.log("No user signed in");
+    const accountMenu = document.getElementById('accountMenu');
+    accountMenu.textContent = 'Not signed in';
+  }
+});
 const sqlQuestions = [
   {
     code: `1  -- Database schema for a simple member portal
@@ -211,10 +241,13 @@ const linuxQuestions = [
    
   }
 ];
+appendToTerminal("root@spotthevuln:~# ./start_game.sh");
+appendToTerminal("root@spotthevuln:~# Welcome, User! Select a language above to begin!")
 let skidSpeed = false
 let hackSpeed = false
 let nsaSpeed = false
 let insaneSpeed = false
+const noTime = document.getElementById('notime')
 const skid = document.getElementById('slow')
 const hacker = document.getElementById('medium')
 const nsa = document.getElementById('fast')
@@ -224,25 +257,34 @@ function resetSpeeds() {
     hackSpeed = false;
     nsaSpeed = false;
     insaneSpeed = false;
+    noTime.style.backgroundColor = ''
+    skid.style.backgroundColor = ''
+    hacker.style.backgroundColor = ''
+    nsa.style.backgroundColor = ''
+    insane.style.backgroundColor = ''
 }
 
+noTime.addEventListener('click', () => {
+  resetSpeeds();
+  appendToTerminal('Timer Challenge Cleared.')
+})
 skid.addEventListener('click', () => { 
-    resetSpeeds(); skidSpeed = true; startTimer(); 
+    resetSpeeds(); skidSpeed = true; skid.style.backgroundColor = 'green'; 
     appendToTerminal('Patch the Vulnerability Before Red Team Exploits in 5 minutes!');
 }); 
 
 hacker.addEventListener('click', () => { 
-    resetSpeeds(); hackSpeed = true; startTimer(); 
+    resetSpeeds(); hackSpeed = true; hacker.style.backgroundColor = 'green';
     appendToTerminal('Patch the Vulnerability Before Red Team Exploits in 3 minutes!');
 }); 
 
 nsa.addEventListener('click', () => { 
-    resetSpeeds(); nsaSpeed = true; startTimer(); 
+    resetSpeeds(); nsaSpeed = true; nsa.style.backgroundColor = 'green';
     appendToTerminal('Patch the Vulnerability Before Red Team Exploits in 1 minute!');
 }); 
 
 insane.addEventListener('click', () => { 
-    resetSpeeds(); insaneSpeed = true; startTimer(); 
+    resetSpeeds(); insaneSpeed = true; insane.style.backgroundColor = 'green';
     appendToTerminal('Patch the Vulnerability Before Red Team Exploits in !!! THIRTY SECONDS !!!');
 });
 
@@ -256,8 +298,8 @@ let timerInterval = null;
 let startTime = null;
 const timerButtons = document.getElementById('timerButtons')
 function startTimer() {
-  timerButtons.removeAttribute('hidden')
   startTime = Date.now();
+  timerButtons.setAttribute('hidden', 'true')
   theTimer.style.display = 'flex'
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(updateTimer, 1000);
@@ -294,7 +336,6 @@ setInterval(() => {
     theTimer.setAttribute('hidden', 'true')
     registersAsm.setAttribute('hidden', 'true')
     stackAsm.setAttribute('hidden', 'true')
-    subButton.setAttribute('hidden', 'true')
     h5.setAttribute('hidden', 'true')
     prev.setAttribute('hidden', 'true')
     next.setAttribute('hidden', 'true')
@@ -323,7 +364,7 @@ function updateTimer() {
 
 function stopTimer() {
   clearInterval(timerInterval);
-  timerButtons.setAttribute('hidden', 'true')
+  timerButtons.removeAttribute('hidden')
   timerInterval = null;
 }
 
@@ -395,17 +436,18 @@ document.getElementById('prev-step').addEventListener('click', () => {
   
 })
 const challengesBtn = document.getElementById('challengesLoad');
-
+const sideContainer = document.querySelector('.side-menu-container')
 challengesBtn.addEventListener('click', () => {
   buttonDiv.classList.toggle('active');
   
-  // Optional: Change button style when menu is open
+  // Apply the transition once (better in CSS, but fine here)
+  sideContainer.style.transition = 'left 0.4s ease-in-out';
+
   if (buttonDiv.classList.contains('active')) {
-    challengesBtn.style.left = '240px'; // Move button with menu
+    sideContainer.style.left = '-10px'; // Moves the whole unit
   } else {
-    challengesBtn.style.left = '0';
+    sideContainer.style.left = '-240px';
   }
-  challengesBtn.style.transition = 'left 0.4s ease-in-out';
 });
 
 const buttonDiv = document.getElementById('btns');
@@ -421,7 +463,7 @@ const questionsMap = {
   asm: linuxQuestions
 };
   const controls = document.getElementById('debugger-controls')
-  const ui = document.getElementById('debugger-ui')
+  const debugui = document.getElementById('debugger-ui')
    const prev = document.getElementById('prev-step')
     const next = document.getElementById('next-step')
 let currentQuestion = null
@@ -512,7 +554,7 @@ document.addEventListener('click', e => {
     const registersAsm = document.getElementById('reg4')
     const stackAsm = document.getElementById('stack4')
     const theTimer = document.getElementById('timer')
-    const subButton =    document.getElementById('submit')
+
 function setupChallenge(){
   appendToTerminal(`${currentQuestion.title} Started! Good Luck!`)
   theTimer.removeAttribute('hidden')
@@ -524,7 +566,6 @@ sanity.textContent = '';
 insanity.textContent = '';
   codeDiv.innerHTML = '';
   codeDiv.removeAttribute('hidden');
-  subButton.removeAttribute('hidden')
   h5.removeAttribute('hidden');
   h5.textContent = 'Which line is insecure? If the answer is multiple, please answer one at a time.';
 
@@ -532,7 +573,7 @@ insanity.textContent = '';
     stackAsm.removeAttribute('hidden')
     registersAsm.removeAttribute('hidden')
     tracker.removeAttribute('hidden')
-     ui.removeAttribute('hidden');       
+     debugui.removeAttribute('hidden');       
     controls.removeAttribute('hidden'); 
     prev.removeAttribute('hidden');
     next.removeAttribute('hidden');
@@ -604,6 +645,7 @@ function lighting(){
 }
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter'){
+        e.preventDefault()
         const input = terminalInput.value.trim().toLowerCase();
     
     // If we are currently waiting for a y/n response
@@ -631,7 +673,7 @@ document.addEventListener('keydown', (e) => {
     terminalInput.value = ''; // Clear the input box
    
   }
-} )
+  } )
 document.addEventListener('click', e => {
   if (e.target.classList.contains('level-btn')){
     const lang = e.target.dataset.lang
@@ -656,8 +698,6 @@ let activeVulnLine = null;
 
 
 
-
-document.getElementById('submit').addEventListener('click', submitAnswer)
 function submitAnswer(){
   if (!currentQuestion) return;
   
@@ -699,8 +739,6 @@ if (light) {
       }
     }
   });
-
-
   }
   function checkResults(){
     // Calculate total insecure lines count
@@ -727,7 +765,6 @@ registersDiv.querySelectorAll('div').forEach(div => {
     theTimer.setAttribute('hidden', 'true')
     registersAsm.setAttribute('hidden', 'true')
     stackAsm.setAttribute('hidden', 'true')
-    subButton.setAttribute('hidden', 'true')
     h5.setAttribute('hidden', 'true')
     prev.setAttribute('hidden', 'true')
     next.setAttribute('hidden', 'true')
