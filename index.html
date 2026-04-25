@@ -3,8 +3,14 @@
   <head>
     <title>Spot The Vuln</title>
     <link rel="stylesheet" href="styles.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
   </head>
   <body>
+    <!-- The HTML element where the FirebaseUI sign-in widget will be rendered -->
+
     <div id='background'>
       <div id='title-container'>
       <h1 id='titl'>Spot The Vuln</h1>
@@ -34,29 +40,34 @@
 <div id='code' hidden></div>
 <div id='vuln-lights'></div>
 <div hidden id="timer" style="color: #03fc49; font-family: monospace; margin: 10px 0; font-size: 1.2rem;">Time: 00:00</div>
-<div id='timerButtons' hidden> <p id='tChallenge'>Optional Timer Challenges</p> <button  title='Script Kiddie (5m)'id='slow'>🐢</button><button title='Hacker (3m)'id='medium'>🐇</button><button title ='NSA (60s)'id='fast'>🚀</button><button title='CPU (30s)' id='impossible'>🔲</button></div>
+<div id='timerButtons' > <p id='tChallenge'>Optional Timer Challenges</p> <button title='No Timer (default)' id='notime'>♾️</button> <button  title='Script Kiddie (5m)'id='slow'>🐢</button><button title='Hacker (3m)'id='medium'>🐇</button><button title ='NSA (60s)'id='fast'>🚀</button><button title='CPU (30s)' id='impossible'>🔲</button></div>
 
       <h5 id='h5' hidden style='color: #03fc49;   background-color: black;'>Which line is insecure? If the answer is multiple, please answer one at a time.</h3>
+
       <div id='terminal'>
         <div id='termContent'>
           
         </div>
       </div>
       
-        <textarea id='termInput' placeholder='Enter Insecure Line Number Here (or y/n for prompts)'></textarea><button id='submit'hidden >Submit</button>
+        <textarea id='termInput' placeholder='Enter Insecure Line Number Here (or y/n for prompts)'></textarea>
       <!-- Add pwned animation across lights when all light up as encouragement to solve !-->
       <!-- Merge submit and enter functions for termInput !--> 
       </div>
-      <div id='btns'>
-      <!--add oauth account signup here !-->
+      <div id='btns'>        
         <button id='js'>JavaScript</button> <button id='php'>PHP</button> 
         <button id='sql'>SQL</button><button id='c'>C</button> 
         <button id='asm'>Assembly x86</button> 
       </div>
+      <div class='side-menu-container'>
       <div id='rightButton'></div>
+      <div id='accountMenu'>  
+      
+<div id='signin'>
+      <div id="firebaseui-auth-container"></div>
+      </div>
+      </div>
       <button id='challengesLoad'>A<br>C<br>C<br>O<br>U<br>N<br>T<br></button>
-      <div id='accountMenu'>
-      <!--add oauth account status here !-->
       </div>
       <script src="script.js"></script>
   </body>
