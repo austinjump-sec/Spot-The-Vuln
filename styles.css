@@ -59,10 +59,7 @@ body {
   text-align: center;
   /*background-image: url('https://mir-s3-cdn-cf.behance.net/project_modules/disp/e4316a93890387.5e70ade47b737.gif');*/
 }
-#timer button {
-  /* no display:none or visibility:hidden */
-  cursor: pointer;
-}
+
 #timerButtons[hidden] {
   display: none;
 }
@@ -75,17 +72,22 @@ body {
   color: #6fff00;
   padding: 10px;
   overflow: hidden; /* Terminal itself shouldn't scroll */
+
+  font-family: monospace;
+  
 }
 
 #terminal-content {
-  flex-grow: 1;      /* Takes up all remaining space */
-  overflow-y: auto;  /* Only this part scrolls */
+  flex-grow: 1;      /* Takes up all remaining space */ /* Only this part scrolls */
   margin-bottom: 10px;
   flex: 1;
   color: #6fff00;
   font-size: 1rem;
   word-wrap: break-word; /* Prevents huge strings from breaking layout */
+  font-family: monospace;
+  
 }
+
 #termInput {
     flex-shrink: 0;
     color: #00ff41;
@@ -252,19 +254,53 @@ h1 {
 }
 
 
-/* The vertical "CHALLENGES" toggle button */
-#challengesLoad {
+.side-menu-container {
   position: fixed;
-  left: 0;
+  left: -240px; /* Start hidden (width of your menu) */
   top: 50%;
   transform: translateY(-50%);
-  z-index: 11;
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+  transition: left 0.4s ease-in-out;
+}
+
+/* When the "active" class is added via JS */
+.side-menu-container.active {
+  left: 0;
+}
+
+#accountMenu {
+  width: 240px;
+  min-height: 400px; /* Crucial: FirebaseUI needs vertical space */
+  background: #000;
+  border: 1px solid #03fc49;
+  overflow-y: auto; /* Allows scrolling if the widget is tall */
+  display: block !important; /* Ensure it isn't set to display:none */
+}
+
+#firebaseui-auth-container{
+  z-index: 999999;
+}
+
+
+#rightButton {
+  width: 8px;
+  height: 60px;
+  background: #03fc49;
+  border: 1px solid #000;
+  box-shadow: 0 0 10px #03fc49;
+}
+
+#challengesLoad {
   background: #000;
   color: #03fc49;
   border: 1px solid #03fc49;
+  border-left: none; /* Merges with the light strip */
   cursor: pointer;
   padding: 10px 5px;
-  
+  font-family: monospace;
+  line-height: 1;
 }
 /* The animation definition */
 @keyframes terminal-flash {
