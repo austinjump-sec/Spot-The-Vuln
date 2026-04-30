@@ -4,17 +4,19 @@
     <title>Spot The Vuln</title>
     <link rel="stylesheet" href="styles.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+      <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
  <script src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
+    <link rel="icon" type="image/x-icon" href="/STVlogo.png">  
   </head>
   <body>
     <!-- The HTML element where the FirebaseUI sign-in widget will be rendered -->
-
+    <!-- MAKE THAT COLLECTION IN FIREBASE STUPID !-->
     <div id='background'>
       <div id='title-container'>
       <h1 id='titl'>Spot The Vuln</h1>
-      <img src='https://cdn-icons-png.flaticon.com/512/3722/3722195.png'>
+      <img draggable='false' src='/STV1.png' style= 'height: 100px; width: 100px;'>
       </div>
       <p id='pel'style='color: #2bff00;   background-color: black;'>Spot Program Vulnerabilities and Level Up Your Reverse Engineer Skills!</p>
      <div id="debugger-ui" hidden style="display: flex; gap: 20px; color: #03fc49; font-family: monospace;">
@@ -40,8 +42,7 @@
 <div id='code' hidden></div>
 <div id='vuln-lights'></div>
 <div hidden id="timer" style="color: #03fc49; font-family: monospace; margin: 10px 0; font-size: 1.2rem;">Time: 00:00</div>
-<div id='timerButtons' > <p id='tChallenge'>Optional Timer Challenges</p> <button title='No Timer (default)' id='notime'>♾️</button> <button  title='Script Kiddie (5m)'id='slow'>🐢</button><button title='Hacker (3m)'id='medium'>🐇</button><button title ='NSA (60s)'id='fast'>🚀</button><button title='CPU (30s)' id='impossible'>🔲</button></div>
-
+<div id='timerButtons' > <p id='tChallenge'>Optional Timer Challenges</p> <button title='No Timer (default)' id='notime'>♾️</button> <button  title='Script Kiddie (5m)'id='slow'>🐢</button><button title='Hacker (3m)'id='medium'>🐇</button><button title ='NSA (60s)'id='fast'>🚀</button><button title='CPU (30s)' id='impossible'>🤖</button></div>
       <h5 id='h5' hidden style='color: #03fc49;   background-color: black;'>Which line is insecure? If the answer is multiple, please answer one at a time.</h3>
 
       <div id='terminal'>
@@ -51,10 +52,9 @@
       </div>
       
         <textarea id='termInput' placeholder='Enter Insecure Line Number Here (or y/n for prompts)'></textarea>
-      <!-- Add pwned animation across lights when all light up as encouragement to solve !-->
-      <!-- Merge submit and enter functions for termInput !--> 
+      <!-- create seperate div for advanced program and account info display NOT terminal!  !-->
       </div>
-      <div id='btns'>        
+      <div id='btns'>            <div id="firebaseui-auth-container"></div>  
         <button id='js'>JavaScript</button> <button id='php'>PHP</button> 
         <button id='sql'>SQL</button><button id='c'>C</button> 
         <button id='asm'>Assembly x86</button> 
@@ -62,12 +62,22 @@
       <div class='side-menu-container'>
       <div id='rightButton'></div>
       <div id='accountMenu'>  
-      
-<div id='signin'>
-      <div id="firebaseui-auth-container"></div>
+      <img id='userPfp' src='https://avatars.fastly.steamstatic.com/079c51691742cbaab45c959b0b4fcba8dca6fd20_full.jpg'>
+      <div id='welcomeText' style='padding: 10px;'>Welcome, Guest! Sign in for extra functionality!</div>
+      <button id='challengesDone'>Challenges Completed</button>
+      <button id='globalRank'>View Global Rank</button>
+      <p id='streakMessage'>Solve a Program Every Day to Earn Streaks! Presitge at 100 Streaks</p>
+      <div id="dailyStreak"><br>
+         <p id='streakValue'>0</p>
+      <div id='gradientBar'></div><img id='fireicon' src='https://images.vexels.com/media/users/3/146887/isolated/preview/41faeb4b7129b75f4883d75c72627835-fire-flame-clipart.png'>
       </div>
-      </div>
+      </div> <br>
       <button id='challengesLoad'>A<br>C<br>C<br>O<br>U<br>N<br>T<br></button>
+      </div>
+      <div id='side-menu-containerR'>
+                <button id='exit'>O<BR>T<BR>H<BR>E<BR>R<BR></button>
+        <h2 id='divTitle'>Other Info is displayed here...</h2>
+        <div id='miscContent'></div>
       </div>
       <script src="script.js"></script>
   </body>
