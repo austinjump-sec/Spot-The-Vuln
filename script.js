@@ -1,248 +1,256 @@
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadAllQuestions()
+  console.log('Questions Loaded!')
+})
+const firebaseConfig = {
+  apiKey: "AIzaSyDJuvpBpGHiNwzBnQzFaHcgBddShoWJcMo",
+  authDomain: "spot-the-vuln.firebaseapp.com",
+  projectId: "spot-the-vuln",
+  storageBucket: "spot-the-vuln.firebasestorage.app",
+  messagingSenderId: "537987867600",
+  appId: "1:537987867600:web:b1a134ea3716310f8b8fd5",
+  measurementId: "G-ELM7B47KWF"
+};
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyDJuvpBpGHiNwzBnQzFaHcgBddShoWJcMo",
-        authDomain: "spot-the-vuln.firebaseapp.com",
-        projectId: "spot-the-vuln",
-        storageBucket: "spot-the-vuln.firebasestorage.app",
-        messagingSenderId: "537987867600",
-        appId: "1:537987867600:web:b1a134ea3716310f8b8fd5",
-        measurementId: "G-ELM7B47KWF"
-      };
-      firebase.initializeApp(firebaseConfig);
-      let ui = new firebaseui.auth.AuthUI(firebase.auth());
-      ui.start('#firebaseui-auth-container', {
-        signInOptions: [
-          firebase.auth.GithubAuthProvider.PROVIDER_ID
-        ],
-        signInSuccessUrl: 'index.html',
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+let gitUser = false;
+let leaderboardResults = [];
+const streakValue = document.getElementById('streakValue');
+
+async function createLeaderboard(score, elapsedSeconds) {
+  const user = firebase.auth().currentUser;
+  if (!user) return;
+
+  try {
+const githubData = user.providerData.find(p => p.providerId === 'github.com');
+    const githubUsername = githubData?.screenName || githubData.displayName || "User";
+    await db.collection('leaderboard').doc(user.uid).set({
+      score: score,
+      finalTime: elapsedSeconds,
+      program: currentQuestion.title,
+      userName: githubUsername,
+      uid: user.uid
+    }, {merge: true});
+    
+    updateDailyStreak(user.uid);
+  } catch (e) {
+    console.error("Error saving score:", e);
+  }
+}
+document.getElementById('challengesDone').addEventListener('click', async () => {
+  const user = firebase.auth().currentUser;
+  if (!user){
+    let divTitle = document.getElementById('divTitle')
+    divTitle.textContent = 'Guest Error!'
+    document.getElementById('miscContent').innerHTML = `<p>Guest data is not saved. Please create an account using github! : )`
+  if (!right) toggleRightMenu();
+  }
+    const completedRef = db.collection('users')
+        .doc(user.uid)
+        .collection('completedChallenges');
+
+    try {
+        const querySnapshot = await completedRef.get();
+        
+        // Build a list of all program titles and scores
+        let listHTML = `<div class="cyber-list-header">MISSION HISTORY</div>`;
+        
+        if (querySnapshot.empty) {
+            listHTML += `<div class="no-data">> No completed challenges found.</div>`;
+        } else {
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                listHTML += `
+                    <div class="history-item">
+                        <span class="prompt">></span> 
+                        <strong>${data.program}</strong> 
+                        <span class="history-score"> - Score: ${data.score} | Time: ${data.time}</span>
+                        <div class="history-date">${data.completedAt?.toDate().toLocaleDateString() || 'N/A'}</div>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('divTitle').textContent = "Personal Leaderboard"
+        document.getElementById('miscContent').innerHTML = listHTML;
+        
+        if (!right) toggleRightMenu();
+
+    } catch (error) {
+        console.error("Error retrieving mission history:", error);
+    }
+});
+async function showLeaderboardProgram(programTitle){
+  const miscellanious = document.getElementById('miscContent')
+  const divTitle = document.getElementById('divTitle')
+  miscellanious.innerHTML = ''
+  divTitle.textContent = `Leaderboard: ${programTitle}`
+  
+  try{
+    const querySnapshot = await db.collection('leaderboard')
+    .where('program', '==', programTitle)
+    .orderBy('score', 'desc')
+    .get()
+    
+    if (querySnapshot.empty){
+      miscellanious.textContent = 'Leaderboard yet to load or no user data yet (guest data is not logged)'
+      return 
+    }
+    
+    let rank = 1
+    querySnapshot.forEach(doc => {
+      const data = doc.data();
+      const tier = document.createElement('div');
+      tier.id = 'tier';
+      tier.textContent = `#${rank} | User: ${data.userName} | Score: ${data.score} | Time: ${data.finalTime}s`;
+      miscellanious.appendChild(tier);
+      rank++;
+    });
+
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    miscellanious.textContent = `Failed to load leaderboard.${error}`;
+  }
+  }
+
+async function updateDailyStreak(userUid) {
+  const leaderboardRef = db.collection('leaderboard').doc(userUid);
+  try {
+    const doc = await leaderboardRef.get();
+    if (!doc.exists) return;
+
+    const data = doc.data();
+    const now = Date.now();
+    const fullDay = 24 * 60 * 60 * 1000;
+    let newWidth = data.streakPercent || 0;
+
+    
+    if (!data.lastCompleted || (now - data.lastCompleted.toDate().getTime() > fullDay)) {
+      const bar = document.getElementById('gradientBar');
+      newWidth = (data.streakPercent || 0) + 1;
+      
+      if (newWidth >= 100) {
+        await leaderboardRef.update({ prestiged: firebase.firestore.FieldValue.increment(1) });
+        newWidth = 0;
+      }
+
+      if (streakValue) streakValue.textContent = newWidth;
+      if (bar) bar.style.width = newWidth + '%';
+
+      await leaderboardRef.update({
+        streakPercent: newWidth,
+        streakCompleted: true,
+        lastCompleted: firebase.firestore.FieldValue.serverTimestamp()
       });
-firebase.auth().onAuthStateChanged(user => {
+    }
+    return newWidth;
+  } catch (e) {
+    console.error("Error Updating Streak", e);
+  }
+}
+//when user completes program create leaderboard for user using uid to mark completed for challenges completed and store vulnerabilities to update ??? in DOM
+
+firebase.auth().onAuthStateChanged(async user => {
+  const accountMenu = document.getElementById('accountMenu');
+  const welcomeText = document.getElementById('welcomeText');
+  const firebaseUiContainer = document.getElementById('firebaseui-auth-container');
+  const pfpImg = document.getElementById('userPfp');
+
   if (user) {
-    console.log("User signed in:", user);
-    ui.reset()
-    // Show logged-in user's info and enable features
-    // Example: display username/email in accountMenu div
-    const accountMenu = document.getElementById('accountMenu');
-    accountMenu.textContent = `Welcome, ${user.displayName || user.email} (GitHub)`;
+    gitUser = true;
+    ui.reset();
+    if (firebaseUiContainer) firebaseUiContainer.style.display = 'none';
+
+    
+    const githubData = user.providerData.find(p => p.providerId === 'github.com');
+    const githubUsername = githubData?.screenName || githubData.displayName || "User";
+    const githubPfp = githubData?.photoURL || user.photoURL || "https://wallpapers.com/images/high/face-icon-default-pfp-wvn0p3q6n2ipz4ir.jpg";
+
+
+    
+    if (welcomeText) welcomeText.textContent = `Welcome, ${githubUsername}!`;
+    if (pfpImg) {
+      pfpImg.referrerPolicy = "no-referrer";
+      pfpImg.src = githubPfp;
+      pfpImg.style.display = 'block';
+    }
+
+    
+    const leadDoc = await db.collection('leaderboard').doc(user.uid).get();
+    if (leadDoc.exists) {
+      const percent = leadDoc.data().streakPercent || 0;
+      if (document.getElementById('gradientBar')) {
+          document.getElementById('gradientBar').style.width = percent + '%';
+      }
+      if (streakValue) streakValue.textContent = percent;
+    }
+
+    // Sync User Profile
+    await db.collection('users').doc(user.uid).set({
+      uid: user.uid,
+      githubUsername: githubUsername,
+      photoURL: githubPfp,
+      lastSignInTime: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
   } else {
-    console.log("No user signed in");
-    const accountMenu = document.getElementById('accountMenu');
-    accountMenu.textContent = 'Not signed in';
+    gitUser = false;
+    if (accountMenu) 
+    if (firebaseUiContainer) firebaseUiContainer.style.display = 'block';
+    
+    ui.start('#firebaseui-auth-container', {
+      signInOptions: [firebase.auth.GithubAuthProvider.PROVIDER_ID],
+      signInSuccessUrl: 'index.html'
+    });
   }
 });
-const sqlQuestions = [
-  {
-    code: `1  -- Database schema for a simple member portal
-2  CREATE TABLE members (
-3      id INT PRIMARY KEY,
-4      username VARCHAR(50),
-5      
-6      password VARCHAR(50), 
-7      email VARCHAR(100)
-8  );
-9  
-10 
-11 INSERT INTO members (id, username, password) 
-12 VALUES (1, 'admin', 'password123');
-13 
-14 
-15 
-16 GRANT ALL PRIVILEGES ON members TO 'web_guest';
-`,
-insecureLines: {
-  '6': {name: 'Plaintext Password Storage', vuln: 'Anyone who can read code gains access.'},
-'16': {name: 'Excessive Privilege Grant', vuln: 'Violates principle of least privilege'}
+const gRank = document.getElementById('globalRank')
+gRank.addEventListener('click', async () => {
+  const divTitle = document.getElementById('divTitle')
+  divTitle.textContent = 'Leaderboard (prototype)'
+  const miscellanious = document.getElementById('miscContent')
+  miscellanious.innerHTML = ''
+  await showLeaderboard()
+  if (!right) toggleRightMenu();
+  leaderboardResults.forEach((r) => {
+    let i = 1
+    let tier = document.createElement('div')
+    tier.textContent = r
+    tier.id = 'tier'
+    miscellanious.appendChild(tier) 
+    })
+})
 
-  },
-    title: "Commander",
-    diff: 2
-  }]
-const cQuestions = [
-  {
-    code : `1  #include <stdio.h>
-2  #include <string.h>
-3  
-4  void process_data(char *user_input) {
-5      char internal_buffer[32];
-6      
-7      
-8      
-9      strcpy(internal_buffer, user_input); 
-10 
-11     printf("Processing: %s\ n", internal_buffer);
-12 }
-13 
-14 int main(int argc, char *argv[]) {
-15     if (argc > 1) {
-16          
-17         
-18         printf(argv[1]); 
-19         process_data(argv[1]);
-20     }
-21     return 0;
-22 }
-`,
-insecureLines: {
-  '9': {name: 'Buffer Overflow', vuln: "Can be exploited to cause unexpected behavior, which is useful for a variety of vectors"},
-'18': {name: 'Format String Vulnerability', vuln: "Allows an attacker to leak stack data or write to arbitrary memory by injecting format specifiers."} 
-  
-},
-title: "Overflow",
-diff: 6
-  }]
-  let currentStepIndex = 0
-const jsQuestions = [
-  {
-    code : `1  const express = require('express');
-2  const crypto = require('crypto');
-3  const db = require('./db');
-4  const app = express();
-5  
-6  
-7  
-8  const ADMIN_KEY = "SUPER_SECRET_12345"; 
-9  
-10 
-11 app.post('/login', (req, res) => {
-12     const { username, password } = req.body;
-13     const hash = crypto.createHash('md5').update(password).digest('hex');
-14 
-15     db.users.findOne({ user: username, pass: hash }, (err, user) => {
-16         if (user) {
-17             res.send("Welcome back!");
-18         } else {
-19             res.status(401).send("Fail");
-20         }
-21     });
-22 });
-23 
-24 
-25 app.get('/debug', (req, res) => {
-26     if (req.query.key === ADMIN_KEY) {
-27         eval(req.query.cmd); 
-28     }
-29 });
-30 
-31 
-32 app.listen(3000);
-`,
-  insecureLines: {
-    '8': {name: "Hardcoded Plaintext Password", vuln: "Can gain access by reading source code"},
-    '15': {name: "Weak encryption/hashing", vuln: "Weak encryption (especially an unsalted MD5) can be reversed."},
-    '27': {name: "RCE via eval()", vuln: "The eval() function executes a string as code. An attacker could use this to gain full control of a server."}
-    
-  },
-  title: "Crypto",
-  diff: 3
-  } 
-
-  ]
-
-const phpQuestions = [
-  {
-    code : `1  <?php
-2  include("config.php");
-3  
-4  $userId = $_GET['id'];
-5  $page = $_GET['page'];
-6  
-7  
-8  $query = "SELECT * FROM users WHERE id = " . $userId;
-9  $result = mysqli_query($conn, $query);
-10 $row = mysqli_fetch_assoc($result);
-11 
-12 echo "<h1>User: " . $row['username'] . "</h1>";
-13 
-14 
-15 if (isset($page)) {
-16     include("pages/" . $page . ".php");
-17 }
-18 
-19 
-20 if ($row['role'] == 'user') {
-21     echo "<a href='edit.php?id=" . $row['id'] . "'>Edit Profile</a>";
-22 }
-23 ?>
-`, 
-insecureLines: {
-  '8': {name: 'SQL Injection', vuln: 'Direct queries to table can be manipulated to leak vital data or even gain control of server'},
-  '16': {name: 'Local File Inclusion', vuln: 'Using unvalidated $_GET["page" in include() lets attackers traverse directories'},
-  '21': {name: 'XSS/IDOR', vuln: "Echoing $row['id'] into an href without escaping allows for XSS, while the pattern also encourages Insecure Direct Object Reference (IDOR) attacks."}
-  
-},
-title: "Web-Shell",
-diff: 4
+function computeScore(elapsedSeconds){
+  let maxScore = 1000 
+  const score = Math.max(0, maxScore - (elapsedSeconds * 5))
+  let multiplier =  1 + (accuracyBonus / 10)
+  return Math.floor(score * multiplier)
+}
+// 4. Leaderboard Logic
+let increment = 0
+async function showLeaderboard() {
+  try {
+    const querySnapshot = await db.collection('leaderboard').orderBy("score", "desc").limit(10).get();
+    leaderboardResults = [];
+    increment = 1
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      leaderboardResults.push(`#${increment} | User: ${data.userName} | Score: ${data.score} | Time: ${data.finalTime}s | Program: ${data.program}`);
+      increment++
+    });
+  } catch (error) {
+    console.error("Error retrieving leaderboard", error);
   }
-  ]
-const linuxQuestions = [
-  {
-    isAsm: true, // Flag to tell the UI to show the debugger
-    steps: [
-      {
-        addr: "0x08048000",
-        instr: "mov eax, [0x08049000]",
-        regs: { EAX: "0x00000041", ESP: "0x7ffffffc" },
-        stack: [{ addr: "0x7ffffffc", val: "0x08048022" }]
-      },
-      {
-        addr: "0x08048005",
-        instr: "cmp eax, 0x42",
-        regs: { EAX: "0x00000041", ESP: "0x7ffffffc" },
-        stack: [{ addr: "0x7ffffffc", val: "0x08048022" }]
-      }
-    ],
-    code: "0x08048000: mov eax, [0x08049000]\n0x08048005: cmp eax, 0x42",
-    insecureLines: {
-      "0x08048005": {
-        name: 'Insecure Hardcoded Comparison',
-        vuln: 'Hardcoding a secret value (0x42, hex for B) for comparison makes it easy for an attacker to see the key by inspecting the binary with a debugger'
-      }
-      
-    },
-    title: "Reverse",
-    diff: 7
-  },
-  {
-    isAsm: true,
-    code: "0x08048000: mov eax, 0x41\n0x08048005: push eax",
-      insecureLines: { 
-    "0x08048005": { name: "Stack Manipulation", vuln: "By pushing a raw value to the stack right before a ret instruction, an attacker can hijack the control flow. The CPU treats that value as the next address to execute, allowing them to redirect the program to their own malicious code. In this code the memory address is 'A' (0x42) but its just for example" } 
-  },
-    title: "Binary",
-    diff: 8,
-    steps: [
-      {
-        // STEP 1: Before anything happens
-        addr: "0x08048000",
-        instr: "mov eax, 0x41",
-        regs: { EAX: "0x00000000", ESP: "0x7ffffffc" },
-        stack: [{ addr: "0x7ffffffc", val: "0x00000000" }]
-      },
-      {
-        // STEP 2: EAX has changed because of the 'mov'
-        addr: "0x08048005",
-        instr: "push eax",
-        regs: { EAX: "0x00000041", ESP: "0x7ffffffc" }, // EAX updated!
-        stack: [{ addr: "0x7ffffffc", val: "0x00000000" }]
-      },
-      {
-        // STEP 3: The stack has changed because of the 'push'
-        addr: "0x0804800A", 
-        instr: "ret",
-        regs: { EAX: "0x00000041", ESP: "0x7ffffff8" }, // ESP moved down
-        isFinal: true,
-        stack: [
-          { addr: "0x7ffffff8", val: "0x00000041" }, // New value on stack!
-          { addr: "0x7ffffffc", val: "0x00000000" }
-        ]
-      }
-      
-    ]
-   
-  }
-];
+}
+
 appendToTerminal("root@spotthevuln:~# ./start_game.sh");
 appendToTerminal("root@spotthevuln:~# Welcome, User! Select a language above to begin!")
+appendToTerminal("root@spotthevuln:~# Practice spotting advanced bug bounties and learn reverse engineering basics!")
 let skidSpeed = false
 let hackSpeed = false
 let nsaSpeed = false
@@ -324,7 +332,7 @@ setInterval(() => {
         stopTimer();
         terminalDiv.classList.add('error-flicker');
     
-    // 2. Remove it after 1 second so it stops
+
     setTimeout(() => {
         terminalDiv.classList.remove('error-flicker');
     }, 1000);
@@ -353,7 +361,7 @@ setInterval(() => {
     });
     resetSpeeds()
     }
-}, 1000); // Checking every 1 second is plenty for a timer
+}, 1000);
 
 function updateTimer() {
   const elapsed = Math.floor((Date.now() - startTime) / 1000);
@@ -366,6 +374,14 @@ function stopTimer() {
   clearInterval(timerInterval);
   timerButtons.removeAttribute('hidden')
   timerInterval = null;
+}
+const sideContainerR = document.getElementById('side-menu-containerR');
+
+let right = false
+function toggleRightMenu() {
+  right = !right
+  sideContainerR.classList.toggle('active') // hidden position
+  
 }
 
 function updateDebugger(step) {
@@ -444,9 +460,9 @@ challengesBtn.addEventListener('click', () => {
   sideContainer.style.transition = 'left 0.4s ease-in-out';
 
   if (buttonDiv.classList.contains('active')) {
-    sideContainer.style.left = '-10px'; // Moves the whole unit
+    sideContainer.style.left = '0px'; // Moves the whole unit
   } else {
-    sideContainer.style.left = '-240px';
+    sideContainer.style.left = '-320px';
   }
 });
 
@@ -455,13 +471,25 @@ const codeDiv = document.getElementById('code');
 const h5 = document.getElementById('h5');
 let hideNext = false
 let foundLines = []
-const questionsMap = {
-  js: jsQuestions,
-  php: phpQuestions,
-  sql: sqlQuestions,
-  c: cQuestions,
-  asm: linuxQuestions
-};
+const questionsMap = {};
+async function loadAllQuestions(){
+  try{
+    const [js, php, sql, c, asm] = await Promise.all([
+      fetch('/js.json').then(r => r.json()),
+      fetch('/php.json').then(r => r.json()),
+      fetch('/sql.json').then(r => r.json()),
+      fetch('/c.json').then(r => r.json()),
+      fetch('asm.json').then(r => r.json()),
+    ]);
+    questionsMap.js = js
+    questionsMap.php = php 
+    questionsMap.sql = sql 
+    questionsMap.c = c 
+    questionsMap.asm = asm
+  } catch (err){
+    console.error('Error loading questions:', err)
+  }
+}
   const controls = document.getElementById('debugger-controls')
   const debugui = document.getElementById('debugger-ui')
    const prev = document.getElementById('prev-step')
@@ -471,14 +499,14 @@ let menu = document.getElementById('dynamic-dropdown');
 if (!menu) {
     menu = document.createElement('div');
     menu.id = 'dynamic-dropdown';
-    document.body.appendChild(menu);
+    const sideContainerR = document.getElementById('side-menu-containerR');
 }
 
 // 1. Show menu when hovering over a language button
 let closeTimeout;
 
 // 1. Show and Clear Timeout on Hover
-buttonDiv.addEventListener('mouseover', e => {
+buttonDiv.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn || btn.id === 'challengesLoad') return;
     
@@ -489,7 +517,7 @@ buttonDiv.addEventListener('mouseover', e => {
     if (!levels) return;
 
     // Update content and position
-    menu.innerHTML = `
+   let programInfo = `
         <div class="dropdown-header">${lang.toUpperCase()} CHALLENGES</div>
         <div class="level-list">
             ${levels.map((q, index) => `
@@ -499,13 +527,103 @@ buttonDiv.addEventListener('mouseover', e => {
             `).join('')}
         </div>
     `;
-
-    const rect = btn.getBoundingClientRect();
-    menu.style.left = `${rect.left}px`;
-    menu.style.top = `${rect.bottom + window.scrollY}px`;
-    menu.style.display = 'block';
+    
+    const miscellanious = document.getElementById('miscContent')
+    const divTitle = document.getElementById('divTitle')
+    divTitle.textContent = `${lang.toUpperCase()} Program List`
+    
+    if (!right) toggleRightMenu()
+    
+    miscellanious.innerHTML = programInfo
+    
 });
+document.getElementById('side-menu-containerR').addEventListener('click', async (e) => {
+  const levelBtn = e.target.closest('.level-btn')
+  if (!levelBtn) return;
+  const lang = levelBtn.dataset.lang 
+  const idx = levelBtn.dataset.idx 
+  const q = questionsMap[lang][idx]
+  let isCompleted = false
+  const user = firebase.auth().currentUser;
+  if (user){
+  try{
+    
+    const completedRef = db.collection('users')
+    .doc(user.uid)
+    .collection('completedChallenges')
+    .doc(q.title);
+    
+    const doc = await completedRef.get()
+    if (doc.exists){
+      isCompleted = doc.exists
+    }
+  } catch (err){
+    console.error('Error listing completed vulnerabilities', err)
+  }
+  }
+    const dialogHTML = `
+<dialog id='dynamic-dialog' class="cyber-modal">
+    <div class="modal-header">
+        <h1 id='dynamicH1'>${q.title}</h1>
+        <div class="badge-row">
+            <span class="badge difficulty">${q.diff}/10 Difficulty</span>
+            <span class="badge language">${lang.toUpperCase()}</span>
+        </div>
+    </div>
 
+    <div class="modal-body">
+        <p class="section-label">DETECTED VULNERABILITIES:</p>
+        <div id='vulnDiv' class="vuln-list"></div>
+    </div>
+
+    <div class="modal-footer">
+        <button id='play' class="btn-primary">INITIALIZE</button> 
+        <button id='leaderBoardShow' class="btn-secondary">LEADERBOARD</button>
+        <button id='close-dialog' class="btn-ghost">ABORT</button>
+    </div>
+</dialog>
+`;
+
+    const oldDialog = document.getElementById('dynamic-dialog')
+    if (oldDialog) oldDialog.remove()
+    document.body.insertAdjacentHTML('beforeend', dialogHTML)
+    let i = 1
+    const programModal = document.getElementById('dynamic-dialog')
+    const vulnDiv = document.getElementById('vulnDiv');
+    vulnDiv.innerHTML = ''
+    Object.entries(q.insecureLines).forEach(([lineNum, data], i) => {
+  const item = document.createElement('div');
+  item.className = 'vuln-item';
+    const vulnName = isCompleted ? data.name : "????????";
+    const vulnDetail = isCompleted ? data.vuln : "Incomplete - find this in-game to unlock details.";
+  item.innerHTML = `
+            <div style="margin-bottom: 10px;">
+                <span class="prompt">></span> <strong>Vuln ${i + 1}:</strong> ${vulnName}
+                <div style="font-size: 0.85rem; color: #aaa; padding-left: 18px; margin-top: 4px;">
+                    ${vulnDetail}
+                </div>
+            </div>
+        `;
+    vulnDiv.appendChild(item);      
+    })
+
+
+    programModal.showModal()
+    const playButton = document.getElementById('play')
+    
+    playButton.addEventListener('click', () => { 
+      setupChallenge()
+       programModal.close()
+    })
+     const leaderBoardShow = document.getElementById('leaderBoardShow')
+     leaderBoardShow.addEventListener('click', ()  => {
+     showLeaderboardProgram(q.title)
+       programModal.close()
+     })
+    
+    document.getElementById('close-dialog').onclick = () => programModal.close();
+})
+document.getElementById('exit').addEventListener('click', toggleRightMenu)
 // 2. Start hide timer when leaving the button
 buttonDiv.addEventListener('mouseout', () => {
     closeTimeout = setTimeout(() => {
@@ -544,7 +662,7 @@ document.addEventListener('click', e => {
 
     // 4. Start the game logic
     console.log("Loading level:", currentQuestion.title);
-    setupChallenge(); 
+    
 });
 
 
@@ -643,7 +761,7 @@ function lighting(){
     });
   }
 }
-document.addEventListener('keydown', (e) => {
+document.addEventListener('keydown', async (e) => {
   if (e.key === 'Enter'){
         e.preventDefault()
         const input = terminalInput.value.trim().toLowerCase();
@@ -656,14 +774,14 @@ document.addEventListener('keydown', (e) => {
         appendToTerminal(`> ${input}`); // Show their 'y' in the terminal
         appendToTerminal(`Exploit info: ${terminalResponse}`);
         notReady = false
-        checkResults()
-      }
-      } if (input === 'n') {
+        await checkResults()
+      }else if (input === 'n') {
         appendToTerminal('Skipping Details...')
-        checkResults()
+        notReady = false
+        await checkResults()
       }
+      } 
       else {
-        
         submitAnswer()
       }
       // Reset so the terminal isn't "locked" to the previous question
@@ -671,17 +789,17 @@ document.addEventListener('keydown', (e) => {
     }
     submitAnswer()
     terminalInput.value = ''; // Clear the input box
-   
+    
   }
   } )
-document.addEventListener('click', e => {
+document.addEventListener('click', (e) => {
   if (e.target.classList.contains('level-btn')){
     const lang = e.target.dataset.lang
     const idx = e.target.dataset.idx
     
     currentQuestion = questionsMap[lang][idx]
-    e.target.closest('dialog').close()
-    setupChallenge()
+    const modal = e.target.closest('dialog')
+    if (modal) modal.close()
   }
 })
 let notReady = false
@@ -697,10 +815,10 @@ function appendToTerminal(text) {
 let activeVulnLine = null; 
 
 
-
+let accuracyBonus = 0 
+let linesTried = 0
 function submitAnswer(){
   if (!currentQuestion) return;
-  
   const userLines = terminalInput.value.split(',').map(s => s.trim())
   let newlyFound = 0 
   
@@ -713,7 +831,6 @@ function submitAnswer(){
       (typeof currentQuestion.insecureLines === 'object' && currentQuestion.insecureLines[line])
     ) {
       if (!foundLines.includes(line)) {
-        
         foundLines.push(line);
         const vulnName = typeof currentQuestion.insecureLines[line] === 'object'
           ? currentQuestion.insecureLines[line].name
@@ -727,29 +844,93 @@ if (light) {
       
         activeVulnLine = line;
         newlyFound++;
-          if (newlyFound > 0){
-    notReady = true
-    terminalInput.value = ''
-    appendToTerminal('Would you like detailed exploit information? (y/n)')
-    
-  }
+          
   if (!notReady){
-    checkResults()
+    const input = terminalInput.value.trim().toLowerCase();
+     if (input === 'y') {
+        let terminalResponse = currentQuestion.insecureLines[activeVulnLine].vuln;
+        appendToTerminal(`> ${input}`); // Show their 'y' in the terminal
+        appendToTerminal(`Exploit info: ${terminalResponse}`);
+        notReady = false
+        checkResults()
+      }else if (input === 'n') {
+        appendToTerminal('Skipping Details...')
+        notReady = false
+        checkResults()
+      }
   }
       }
     }
   });
+  if (newlyFound > 0){
+    notReady = true
+    terminalInput.value = ''
+    if (linesTried < 1){
+      accuracyBonus = 5
+    } else if (linesTried < 3){
+      accuracyBonus = 3
+    } else if (linesTried < 5){
+      accuracyBonus = 1
+    } else {
+      accuracyBonus = 0
+    }
+    
+    appendToTerminal('Would you like detailed exploit information? (y/n)')
+    
+  } else if (terminalInput.value === 'y' || terminalInput.value === 'n' ){
+    return
+  }else {
+    linesTried++
+    appendToTerminal(`No Vulnerability Found. Incorrect Guesses: ${linesTried}`)
   }
-  function checkResults(){
+  }
+  
+  async function checkResults(){
     // Calculate total insecure lines count
   const total = Array.isArray(currentQuestion.insecureLines)
     ? currentQuestion.insecureLines.length
     : Object.keys(currentQuestion.insecureLines).length;
+  const foundCount = foundLines.length
   const left = total - foundLines.length 
   if (left>0){
-    appendToTerminal(`${left}/${total} Vulnerabilities found.`)
+    appendToTerminal(`${foundCount}/${total} Vulnerabilities found.`)
   } else {
-    appendToTerminal('Program Pwned!')
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const score = computeScore(elapsedSeconds)
+    appendToTerminal(`Program Pwned with ${score} points in ${elapsedSeconds} seconds! `)
+    showLeaderboardProgram(currentQuestion.title)
+    const user = firebase.auth().currentUser;
+    if (user){
+    createLeaderboard(score, elapsedSeconds)
+    
+    const completedRef = db.collection('users')
+    .doc(user.uid)
+    .collection('completedChallenges')
+    .doc(currentQuestion.title);
+    try{
+      const doc = await completedRef.get();
+      if (!doc.exists || score > doc.data().score){
+      await completedRef.set({
+        completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        score: score,
+        time: elapsedSeconds,
+        program: currentQuestion.title,
+        insecureLines: currentQuestion.insecureLines
+      }, {merge:true})}
+      const challengeButtons = document.querySelectorAll(`[data-idx]`)
+      challengeButtons.forEach(btn => {
+        if (btn.textContent.includes(currentQuestion.title)){
+          btn.textContent += '✅'
+        }
+      })
+    }catch (error){
+      console.error("Error marking completion", error)
+    }
+    } else {
+      
+    }
+    linesTried = 0
+    accuracyBonus = 0
     stopTimer()
       const stackDiv = document.getElementById('stack');
   const stackItems = stackDiv.querySelectorAll('div:not(:first-child)')
@@ -771,5 +952,4 @@ registersDiv.querySelectorAll('div').forEach(div => {
     tracker.setAttribute('hidden', 'true')
     document.getElementById('vuln-lights').innerHTML = ''
   }
-  terminalInput.value = ''
 }
