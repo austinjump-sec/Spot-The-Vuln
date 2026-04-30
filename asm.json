@@ -1,0 +1,136 @@
+[
+  {
+    "title": "Reverse",
+    "diff": 7,
+    "isAsm": true,
+    "code": "0x08048000: mov eax, [0x08049000]\n0x08048005: cmp eax, 0x42",
+    "insecureLines": {
+      "0x08048005": {
+        "name": "Insecure Hardcoded Comparison",
+        "vuln": "Hardcoding secrets makes them easy to extract via debugging."
+      }
+    },
+    "steps": [
+      {
+        "addr": "0x08048000",
+        "instr": "mov eax, [0x08049000]",
+        "regs": { "EAX": "0x00000041", "ESP": "0x7ffffffc" },
+        "stack": [{ "addr": "0x7ffffffc", "val": "0x08048022" }]
+      },
+      {
+        "addr": "0x08048005",
+        "instr": "cmp eax, 0x42",
+        "regs": { "EAX": "0x00000041", "ESP": "0x7ffffffc" },
+        "stack": [{ "addr": "0x7ffffffc", "val": "0x08048022" }]
+      }
+    ]
+  },
+  {
+    "title": "Binary",
+    "diff": 8,
+    "isAsm": true,
+    "code": "0x08048000: mov eax, 0x41\n0x08048005: push eax",
+    "insecureLines": {
+      "0x08048005": {
+        "name": "Stack Manipulation",
+        "vuln": "Manipulating stack values can redirect execution flow."
+      }
+    },
+    "steps": [
+      {
+        "addr": "0x08048000",
+        "instr": "mov eax, 0x41",
+        "regs": { "EAX": "0x00000000", "ESP": "0x7ffffffc" },
+        "stack": [{ "addr": "0x7ffffffc", "val": "0x00000000" }]
+      },
+      {
+        "addr": "0x08048005",
+        "instr": "push eax",
+        "regs": { "EAX": "0x00000041", "ESP": "0x7ffffffc" },
+        "stack": [{ "addr": "0x7ffffffc", "val": "0x00000000" }]
+      },
+      {
+        "addr": "0x0804800A",
+        "instr": "ret",
+        "regs": { "EAX": "0x00000041", "ESP": "0x7ffffff8" },
+        "isFinal": true,
+        "stack": [
+          { "addr": "0x7ffffff8", "val": "0x00000041" },
+          { "addr": "0x7ffffffc", "val": "0x00000000" }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Pivot",
+    "diff": 9,
+    "isAsm": true,
+    "code": "0x08048100: mov edx, [esp+8]\n0x08048104: mov [edx], eax\n0x08048106: add esp, 0x1c\n0x08048109: pop ebx\n0x0804810A: pop esi\n0x0804810B: pop edi\n0x0804810C: pop ebp\n0x0804810D: ret",
+    "insecureLines": {
+      "0x08048104": {
+        "name": "Arbitrary Write (Write-What-Where Gadget)",
+        "vuln": "If EDX is user-controlled, an attacker can overwrite critical memory like the Global Offset Table (GOT)."
+      },
+      "0x0804810D": {
+        "name": "Stack Pivot / ROP Chain Base",
+        "vuln": "The large stack adjustment (0x1c) combined with multiple pops allows an attacker to pivot the execution flow to a controlled memory region."
+      }
+    },
+    "steps": [
+      {
+        "addr": "0x08048100",
+        "instr": "mov edx, [esp+8]",
+        "regs": { "EAX": "0x0804a010", "EDX": "0x00000000", "ESP": "0x7ffffff0" },
+        "stack": [
+          { "addr": "0x7ffffff0", "val": "0x08048100" },
+          { "addr": "0x7ffffff4", "val": "0x90909090" },
+          { "addr": "0x7ffffff8", "val": "0x0804a018" }
+        ]
+      },
+      {
+        "addr": "0x08048104",
+        "instr": "mov [edx], eax",
+        "regs": { "EAX": "0x0804a010", "EDX": "0x0804a018", "ESP": "0x7ffffff0" },
+        "stack": [{ "addr": "0x7ffffff0", "val": "0x08048100" }]
+      },
+      {
+        "addr": "0x08048106",
+        "instr": "add esp, 0x1c",
+        "regs": { "EAX": "0x0804a010", "EDX": "0x0804a018", "ESP": "0x7ffffff0" },
+        "stack": [{ "addr": "0x7ffffff0", "val": "0x08048100" }]
+      },
+      {
+        "addr": "0x08048109",
+        "instr": "pop ebx",
+        "regs": { "EAX": "0x0804a010", "EDX": "0x0804a018", "ESP": "0x7ffff00c" },
+        "stack": [{ "addr": "0x7ffff00c", "val": "0xbbbbbbbb" }]
+      },
+      {
+        "addr": "0x0804810A",
+        "instr": "pop esi",
+        "regs": { "EAX": "0x0804a010", "EDX": "0x0804a018", "EBX": "0xbbbbbbbb", "ESP": "0x7ffff010" },
+        "stack": [{ "addr": "0x7ffff010", "val": "0x55555555" }]
+      },
+      {
+        "addr": "0x0804810B",
+        "instr": "pop edi",
+        "regs": { "EAX": "0x0804a010", "EDX": "0x0804a018", "ESI": "0x55555555", "ESP": "0x7ffff014" },
+        "stack": [{ "addr": "0x7ffff014", "val": "0x77777777" }]
+      },
+      {
+        "addr": "0x0804810C",
+        "instr": "pop ebp",
+        "regs": { "EAX": "0x0804a010", "EDX": "0x0804a018", "EDI": "0x77777777", "ESP": "0x7ffff018" },
+        "stack": [{ "addr": "0x7ffff018", "val": "0x00000000" }]
+      },
+      {
+        "addr": "0x0804810D",
+        "instr": "ret",
+        "regs": { "EAX": "0x0804a010", "EDX": "0x0804a018", "EBP": "0x00000000", "ESP": "0x7ffff01c" },
+        "isFinal": true,
+        "stack": [{ "addr": "0x7ffff01c", "val": "0xdeadbeef" }]
+      }
+    ]
+  }
+]
+

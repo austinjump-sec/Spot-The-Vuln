@@ -1,0 +1,37 @@
+[
+  {
+    "title": "Commander",
+    "diff": 2,
+    "code": "1  -- Database schema for a simple member portal\n2  CREATE TABLE members (\n3      id INT PRIMARY KEY,\n4      username VARCHAR(50),\n5      \n6      password VARCHAR(50), \n7      email VARCHAR(100)\n8  );\n9  \n10 \n11 INSERT INTO members (id, username, password) \n12 VALUES (1, 'admin', 'password123');\n13 \n14 \n15 \n16 GRANT ALL PRIVILEGES ON members TO 'web_guest';",
+    "insecureLines": {
+      "6": {
+        "name": "Plaintext Password Storage",
+        "vuln": "Anyone who can read code gains access."
+      },
+      "16": {
+        "name": "Excessive Privilege Grant",
+        "vuln": "Violates principle of least privilege"
+      }
+    }
+  },
+  {
+    "title": "Legacy",
+    "diff": 5,
+    "code": "1  -- High-performance dynamic reporting procedure for cross-tenant data\n2  CREATE PROCEDURE GenerateTenantReport (\n3      IN tenant_id_str VARCHAR(255), \n4      IN filter_clause TEXT\n5  )\n6  BEGIN\n7      -- Context: This system utilizes global session variables for multi-tenancy context\n8      SET @base_query = CONCAT('SELECT * FROM analytics_data WHERE tenant_id = ', tenant_id_str);\n9      \n10     -- Append user-defined filtering logic for 'flexibility'\n11     IF filter_clause IS NOT NULL THEN\n12         SET @base_query = CONCAT(@base_query, ' AND ', filter_clause);\n13     END IF;\n14 \n15     -- Execute the concatenated dynamic SQL string\n16     PREPARE stmt FROM @base_query;\n17     EXECUTE stmt;\n18     DEALLOCATE PREPARE stmt;\n19 END;\n20 \n21 -- Web interface triggers the procedure\n22 -- CALL GenerateTenantReport('101', 'event_type = \"login\"');",
+    "insecureLines": {
+      "8": {
+        "name": "Dynamic SQL Concatenation (Primary Key)",
+        "vuln": "The tenant identifier is concatenated directly into the query string without sanitization, allowing for 'Second-Order' style injections if the ID source is manipulated or if the string is incorrectly escaped in the calling application."
+      },
+      "12": {
+        "name": "Unrestricted Clause Injection",
+        "vuln": "Accepting a raw 'filter_clause' string from the application layer allows a 'Stacked Query' or 'Boolean-Based' attack. An attacker can break out of the SELECT context to execute arbitrary DDL/DML statements or extract data from the `mysql.user` or `information_schema` tables."
+      },
+      "17": {
+        "name": "Blind Execution of Dynamic Prep-Statements",
+        "vuln": "Executing unvalidated dynamic strings within a stored procedure bypasses most application-level WAFs and prepared statement protections provided by modern ORMs, leading to full database compromise."
+      }
+    }
+  }
+]
+

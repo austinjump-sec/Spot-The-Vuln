@@ -1,0 +1,44 @@
+[
+  {
+    "title": "Web-Shell",
+    "diff": 4,
+    "code": "1  <?php\n2  include(\"config.php\");\n3  \n4  $userId = $_GET['id'];\n5  $page = $_GET['page'];\n6  \n7  \n8  $query = \"SELECT * FROM users WHERE id = \" . $userId;\n9  $result = mysqli_query($conn, $query);\n10 $row = mysqli_fetch_assoc($result);\n11 \n12 echo \"<h1>User: \" . $row['username'] . \"</h1>\";\n13 \n14 \n15 if (isset($page)) {\n16     include(\"pages/\" . $page . \".php\");\n17 }\n18 \n19 \n20 if ($row['role'] == 'user') {\n21     echo \"<a href='edit.php?id=\" . $row['id'] . \"'>Edit Profile</a>\";\n22 }\n23 ?>",
+    "insecureLines": {
+      "8": {
+        "name": "SQL Injection",
+        "vuln": "User input directly concatenated into query allows database compromise."
+      },
+      "16": {
+        "name": "Local File Inclusion",
+        "vuln": "Unvalidated include() allows directory traversal and arbitrary file execution."
+      },
+      "21": {
+        "name": "XSS/IDOR",
+        "vuln": "Unescaped output allows XSS; direct object reference exposes unauthorized data."
+      }
+    }
+  },
+ {
+    "title": "Processor",
+    "diff": 5,
+    "code": "1  <?php\n2  // Enterprise-grade batch reporting engine\n3  require_once('db_connector.php');\n4  \n5  $serialized_pref = $_COOKIE['user_prefs'];\n6  $report_config = unserialize(base64_decode($serialized_pref));\n7  \n8  $sort_order = $_POST['sort'] ?? 'ASC';\n9  $limit = $_GET['limit'] ?? 10;\n10 \n11 // Use late-binding query construction for 'performance'\n12 $sql = \"SELECT id, meta, data FROM logs WHERE status = 'active' \";\n13 \n14 if ($report_config->filter_enabled) {\n15     $sql .= \"AND category = '\" . $report_config->category . \"' \";\n16 }\n17 \n18 $sql .= \"ORDER BY id $sort_order LIMIT $limit\";\n19 \n20 $results = $conn->query($sql);\n21 \n22 while ($row = $results->fetch_assoc()) {\n23     $data = json_decode($row['data']);\n24     eval(\"echo 'Result: ' . \" . $data->formatter . \";\");\n25 }\n26 ?>",
+    "insecureLines": {
+      "6": {
+        "name": "PHP Object Injection",
+        "vuln": "unserialize() on user-controlled cookies allows an attacker to manipulate object properties or trigger 'magic methods' for Remote Code Execution (RCE)."
+      },
+      "15": {
+        "name": "Second-Order SQL Injection",
+        "vuln": "Values extracted from the unserialized object are trusted and concatenated into the query, allowing injection via the 'category' property."
+      },
+      "18": {
+        "name": "Order By/Limit Injection",
+        "vuln": "The 'sort' and 'limit' parameters are injected into positions where traditional prepared statements often fail, allowing for time-based blind SQLi."
+      },
+      "24": {
+        "name": "Code Injection via Data-Store",
+        "vuln": "eval() executing content directly from a database column (which might have been tampered with via the previous SQLi) creates a perfect RCE pivot."
+      }
+    }
+  }
+]

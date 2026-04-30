@@ -1,0 +1,36 @@
+[
+  {
+    "title": "Overflow",
+    "diff": 6,
+    "code": "1  #include <stdio.h>\n2  #include <string.h>\n3  \n4  void process_data(char *user_input) {\n5      char internal_buffer[32];\n6      \n7      \n8      \n9      strcpy(internal_buffer, user_input); \n10 \n11     printf(\"Processing: %s\\n\", internal_buffer);\n12 }\n13 \n14 int main(int argc, char *argv[]) {\n15     if (argc > 1) {\n16         \n17         \n18         printf(argv[1]); \n19         process_data(argv[1]);\n20     }\n21     return 0;\n22 }",
+    "insecureLines": {
+      "9": {
+        "name": "Buffer Overflow",
+        "vuln": "Can be exploited to cause unexpected behavior, useful for many attack vectors."
+      },
+      "18": {
+        "name": "Format String Vulnerability",
+        "vuln": "Allows leaking stack data or writing to memory via format specifiers."
+      }
+    }
+  },
+  {
+    "title": "Kernel",
+    "diff": 6,
+    "code": "1  #include <stdio.h>\n2  #include <stdlib.h>\n3  #include <unistd.h>\n4  #include <sys/mman.h>\n5  \n6  typedef struct { \n7      char tag[8]; \n8      void (*callback)(char *); \n9  } session_t;\n10 \n11 void logger(char *msg) { printf(\"Log: %s\\n\", msg); }\n12 \n13 void handle_request(int req_type, char *payload, size_t len) {\n14     session_t *session = malloc(sizeof(session_t));\n15     session->callback = logger;\n16 \n17     // Vulnerability: Integer Underflow in length check\n18     if (len - 1 > 1024) return;\n19 \n20     // Vulnerability: Heap Overflow via signed/unsigned mismatch\n21     char *buffer = (char *)mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_ANON|MAP_PRIVATE, -1, 0);\n22     read(0, buffer, len + 16);\n23 \n24     // Vulnerability: Use-After-Free / Race Condition\n25     if (req_type == 0xDEAD) {\n26         free(session);\n27     }\n28 \n29     session->callback(buffer); // Execution of freed pointer\n30 }\n31 \n32 int main() {\n33     char data[2048];\n34     handle_request(56013, data, 0); \n35     return 0;\n36 }",
+    "insecureLines": {
+      "18": {
+        "name": "Integer Underflow",
+        "vuln": "If 'len' is 0, 'len - 1' wraps to the maximum value of size_t, bypassing the bounds check entirely."
+      },
+      "22": {
+        "name": "Heap/Mmap Buffer Overflow",
+        "vuln": "Reading 'len + 16' bytes into a buffer of size 'len' allows overwriting adjacent memory metadata or mapped structures."
+      },
+      "29": {
+        "name": "Use-After-Free (UAF)",
+        "vuln": "The 'session' object is freed on a specific 'req_type' but the callback is still invoked, allowing an attacker to hijack the instruction pointer (EIP/RIP) if they can reclaim that heap chunk."
+      }
+    }
+  }
+]
