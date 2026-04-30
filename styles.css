@@ -60,8 +60,123 @@ body {
   /*background-image: url('https://mir-s3-cdn-cf.behance.net/project_modules/disp/e4316a93890387.5e70ade47b737.gif');*/
 }
 
+
+#side-menu-containerR {
+  position: fixed;
+  top: 50%;
+  right: -300px; /* hidden */
+  transform: translateY(-50%);
+  width: 300px;
+  height: 520px;
+
+  background: #050505;
+  border-left: 1px solid rgba(43,255,0,0.25);
+  box-shadow: -10px 0 25px rgba(0,0,0,0.9);
+
+  border-radius: 10px 0 0 10px;
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  transition: right 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+/* ACTIVE */
+#side-menu-containerR.active {
+  right: 0px;
+}
+
+/* 🔥 PROTRUDING BUTTON */
+#exit {
+  position: absolute;
+  left: -45px; /* pushes it OUTSIDE the panel */
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 45px;
+  padding: 10px 5px;
+
+  background: #050505;
+  color: #2bff00;
+
+  border: 1px solid rgba(43,255,0,0.3);
+  border-right: none;
+
+  font-family: monospace;
+  cursor: pointer;
+  line-height: 1.1;
+
+  box-shadow: 0 0 10px rgba(43,255,0,0.4);
+
+  transition: all 0.2s ease;
+}
+
+/* HOVER */
+#exit:hover {
+  background: #2bff00;
+  color: #000;
+}
+
+/* TITLE */
+#divTitle {
+  color: #2bff00;
+  font-family: monospace;
+  border-bottom: 1px solid rgba(43,255,0,0.2);
+  padding-bottom: 8px;
+}
+
+/* CONTENT */
+#miscContent {
+  flex: 1;
+  overflow-y: auto;
+  color: rgba(43,255,0,0.8);
+}
+
+#gradientBar{
+   height: 100%;
+   width: 1%; /* Or set dynamically based on progress */
+  
+  /* Gray -> Yellow -> Orange -> Red */
+  background-image: linear-gradient(
+    to right,     
+    #ffeb3b 33%,   
+    #ff9800 66%,  
+    #f44336 100%  
+  );
+  
+  border-radius: 10px;
+}
+
 #timerButtons[hidden] {
   display: none;
+}
+#side-menu-containerR #tier {
+  background: linear-gradient(135deg, #2bff00 0%, #13fc03 100%);
+  color: #000000; /* dark text for contrast */
+  font-weight: 700;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 12px 20px;
+  margin: 10px 0;
+  border-radius: 12px;
+  box-shadow:
+    0 0 5px #2bff00,
+    0 0 15px #13fc03,
+    0 0 20px #2bff00;
+  text-align: center;
+  cursor: default;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  user-select: none;
+}
+
+#side-menu-containerR #tier:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 10px #6fff00,
+    0 0 30px #39ff00,
+    0 0 40px #6fff00;
 }
 #terminal {
   display: flex;
@@ -254,54 +369,13 @@ h1 {
 }
 
 
-.side-menu-container {
-  position: fixed;
-  left: -240px; /* Start hidden (width of your menu) */
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  z-index: 1000;
-  transition: left 0.4s ease-in-out;
-}
-
-/* When the "active" class is added via JS */
-.side-menu-container.active {
-  left: 0;
-}
-
-#accountMenu {
-  width: 240px;
-  min-height: 400px; /* Crucial: FirebaseUI needs vertical space */
-  background: #000;
-  border: 1px solid #03fc49;
-  overflow-y: auto; /* Allows scrolling if the widget is tall */
-  display: block !important; /* Ensure it isn't set to display:none */
-}
 
 #firebaseui-auth-container{
   z-index: 999999;
 }
 
 
-#rightButton {
-  width: 8px;
-  height: 60px;
-  background: #03fc49;
-  border: 1px solid #000;
-  box-shadow: 0 0 10px #03fc49;
-}
 
-#challengesLoad {
-  background: #000;
-  color: #03fc49;
-  border: 1px solid #03fc49;
-  border-left: none; /* Merges with the light strip */
-  cursor: pointer;
-  padding: 10px 5px;
-  font-family: monospace;
-  line-height: 1;
-}
 /* The animation definition */
 @keyframes terminal-flash {
   0% { background-color: rgba(255, 0, 0, 0); }
@@ -355,12 +429,229 @@ h1 {
     justify-content: space-between;
     border-bottom: 1px solid #1a3300;
 }
+/* Dialog Base Styling */
+.cyber-modal {
+  background: var(--bg-dark);
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+  color: white;
+  padding: 2rem;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 0 20px rgba(92, 250, 35, 0.2), inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.cyber-modal::backdrop {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+/* Header & Badges */
+.modal-header h1 {
+  margin: 0 0 10px 0;
+  font-family: 'Courier New', monospace;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.badge-row { display: flex; gap: 10px; margin-bottom: 20px; }
+.badge {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--border);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+
+/* Body & Vulnerability List */
+.section-label {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.vuln-list {
+  background: rgba(0,0,0,0.3);
+  padding: 15px;
+  border-left: 2px solid var(--primary);
+  font-family: monospace;
+  margin-bottom: 25px;
+}
+
+.vuln-item { margin-bottom: 8px; font-size: 0.9rem; }
+.vuln-item .prompt { color: var(--primary); margin-right: 8px; }
+.hidden-text { opacity: 0.4; }
+
+/* Buttons */
+.modal-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cyber-modal button {
+  cursor: pointer;
+  font-family: 'Segoe UI', sans-serif;
+  font-weight: bold;
+  padding: 12px;
+  border: none;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: black;
+}
+
+.btn-primary:hover {
+  background: #fff;
+  box-shadow: 0 0 15px var(--primary);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: white;
+  border: 1px solid var(--border) !important;
+}
+
+.btn-secondary:hover { border-color: var(--primary) !important; color: var(--primary); }
+
+.btn-ghost {
+  background: transparent;
+  color: #ff4336; /* Red for close */
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.btn-ghost:hover { opacity: 1; }
 
 .dropdown-item:hover {
     background: #13fc03;
     color: #000;
 }
+.side-menu-container {
+  position: fixed;
+  left: -300px; /* hidden properly */
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+  transition: left 0.3s ease;
+}
 
+/* ACTIVE STATE */
+.side-menu-container.active {
+  left: 0;
+}
+
+/* MAIN PANEL */
+#accountMenu {
+  width: 280px;
+  background: #050505; /* softer than pure black */
+  border: 1px solid rgba(43,255,0,0.2);
+  border-right: none;
+  padding: 20px;
+  color: #eaeaea;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* PROFILE IMAGE */
+#userPfp {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  margin: 0 auto;
+  border: 1px solid rgba(43,255,0,0.4);
+}
+
+/* WELCOME TEXT */
+#welcomeText {
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(43,255,0,0.8);
+}
+
+/* BUTTONS */
+#accountMenu button {
+  background: transparent;
+  border: 1px solid rgba(43,255,0,0.2);
+  color: #2bff00;
+  padding: 8px;
+  border-radius: 5px;
+  font-family: monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#accountMenu button:hover {
+  border-color: #2bff00;
+  background: rgba(43,255,0,0.1);
+}
+
+/* STREAK TEXT */
+#streakMessage {
+  font-size: 0.8rem;
+  text-align: center;
+  color: rgba(43,255,0,0.6);
+  line-height: 1.3;
+}
+
+/* STREAK CIRCLE */
+#dailyStreak {
+  background: #000;
+  border: 1px solid #2bff00;
+  border-radius: 50%;
+  height: 35px;
+  width: 250px;
+  margin: 10px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2bff00;
+  font-weight: bold;
+  box-shadow: 0 0 8px rgba(43,255,0,0.4);
+}
+
+/* FIRE ICON ALIGN */
+#fireicon {
+  width: 28px;
+  height: 28px;
+  margin-left: 5px;
+}
+
+/* SIDE TOGGLE STRIP */
+#rightButton {
+  width: 6px;
+  height: 70px;
+  background: #2bff00;
+  box-shadow: 0 0 8px rgba(43,255,0,0.6);
+  cursor: pointer;
+}
+
+/* VERTICAL BUTTON */
+#challengesLoad {
+  background: #050505;
+  color: #2bff00;
+  border: 1px solid rgba(43,255,0,0.3);
+  border-left: none;
+  font-family: monospace;
+  padding: 10px 6px;
+  cursor: pointer;
+  line-height: 1.1;
+  transition: all 0.2s ease;
+}
+
+#challengesLoad:hover {
+  background: #2bff00;
+  color: #000;
+}
 .lvl-diff {
     font-size: 0.7rem;
     opacity: 0.8;
