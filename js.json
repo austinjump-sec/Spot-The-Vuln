@@ -1,0 +1,42 @@
+[
+  {
+    "title": "Crypto",
+    "diff": 3,
+    "code": "1  const express = require('express');\n2  const crypto = require('crypto');\n3  const db = require('./db');\n4  const app = express();\n5  \n6  \n7  \n8  const ADMIN_KEY = \"SUPER_SECRET_12345\"; \n9  \n10 \n11 app.post('/login', (req, res) => {\n12     const { username, password } = req.body;\n13     const hash = crypto.createHash('md5').update(password).digest('hex');\n14 \n15     db.users.findOne({ user: username, pass: hash }, (err, user) => {\n16         if (user) {\n17             res.send(\"Welcome back!\");\n18         } else {\n19             res.status(401).send(\"Fail\");\n20         }\n21     });\n22 });\n23 \n24 \n25 app.get('/debug', (req, res) => {\n26     if (req.query.key === ADMIN_KEY) {\n27         eval(req.query.cmd); \n28     }\n29 });\n30 \n31 \n32 app.listen(3000);",
+    "insecureLines": {
+      "8": {
+        "name": "Hardcoded Plaintext Password",
+        "vuln": "Can gain access by reading source code."
+      },
+      "13": {
+        "name": "Weak encryption/hashing",
+        "vuln": "Unsalted MD5 hashes are easily reversible."
+      },
+      "27": {
+        "name": "RCE via eval()",
+        "vuln": "eval() executes arbitrary input as code, allowing full system compromise."
+      }
+    }
+  },
+  {
+    "title": "Deserializer",
+    "diff": 5,
+    "code": "1  const express = require('express');\n2  const lodash = require('lodash');\n3  const fs = require('fs');\n4  const app = express();\n5  \n6  app.use(express.json());\n7  \n8  const schemaDefaults = { role: 'user', access: ['read'] };\n9  \n10 app.post('/profile/update', (req, res) => {\n11     let profile = {};\n12     const userInput = req.body.settings;\n13 \n14     lodash.merge(profile, schemaDefaults);\n15     lodash.merge(profile, userInput);\n16 \n17     if (profile.role === 'admin') {\n18         const template = fs.readFileSync(`./templates/${req.body.theme}.html`, 'utf8');\n19         res.send(template);\n20     } else {\n21         res.send(\"Profile updated\");\n22     }\n23 });\n24 \n25 app.post('/report', (req, res) => {\n26     const { taskId, callback } = req.body;\n27     const cmd = `node generate_report.js --id=${taskId}`;\n28     \n29     require('child_process').exec(cmd + ` --url=${callback}`);\n30     res.send(\"Processing\");\n31 });\n32 \n33 app.listen(3000);",
+    "insecureLines": {
+      "15": {
+        "name": "Prototype Pollution",
+        "vuln": "Using lodash.merge with unsanitized user input allows an attacker to inject properties like '__proto__.role' into the global Object prototype, elevating privileges for all objects."
+      },
+      "18": {
+        "name": "Path Traversal (LFI)",
+        "vuln": "The theme parameter is used in a file path without sanitization. An attacker can use '../' sequences to read sensitive system files like /etc/passwd."
+      },
+      "29": {
+        "name": "Blind OS Command Injection",
+        "vuln": "The callback variable is concatenated directly into a shell command string. An attacker can use shell metacharacters like ';' or '&&' to execute arbitrary OS commands."
+      }
+    }
+  }
+
+]
+
