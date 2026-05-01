@@ -28,19 +28,233 @@ async function createLeaderboard(score, elapsedSeconds) {
   try {
 const githubData = user.providerData.find(p => p.providerId === 'github.com');
     const githubUsername = githubData?.screenName || githubData.displayName || "User";
+const userRef = db.collection('users').doc(user.uid);
+ const userSnap = await userRef.get();
+const currentTotal = userSnap.data().totalSpeeds;
     await db.collection('leaderboard').doc(user.uid).set({
       score: score,
       finalTime: elapsedSeconds,
       program: currentQuestion.title,
       userName: githubUsername,
-      uid: user.uid
+      uid: user.uid,
     }, {merge: true});
-    
     updateDailyStreak(user.uid);
   } catch (e) {
     console.error("Error saving score:", e);
   }
 }
+const shopItems = [
+  {
+    id: 'byteshifter',
+    name: "Byte Shifter", 
+    type: 'title', 
+    cost: {skid: 2}
+  },
+  {
+    id: 'crashoverride',
+    name: 'Crash Override',
+    type: 'title', 
+    cost: {hacker: 3}
+  },
+  {
+    id: 'plague', 
+    name: 'The Plague',
+    type: 'title',
+    cost: {nsa: 2}
+  },
+  {
+    id: 'compiler',
+    name: 'The Compiler',
+    type: 'title',
+    cost: {cpu: 5}
+  },
+  {
+    id: 'zeroday',
+    name: '0 Day Finder', 
+    type: 'title', 
+    cost: {nsa: 4}
+  },
+  {
+    id: 'elliot', 
+    name: 'Elliot',
+    type: 'title',
+    cost: {cpu: 1}
+  },
+  {
+    id: 'purpTerm',
+    name: 'Purple Terminal',
+    type: 'terminalCustom',
+    cost: {hacker: 2}
+  },
+  {
+    id: 'pinkTerm',
+    name: 'Pink Terminal',
+    type: 'terminalCustom',
+    cost: {skid: 3}
+  },
+  {
+    id: 'blueTerm',
+    name: 'Blue Terminal',
+    type: 'terminalCustom',
+    cost: {hacker: 1}
+  },
+  {
+    id: 'redTerm',
+    name: 'Red Terminal',
+    type: 'terminalCustom',
+    cost: {hacker: 4}
+  }
+  ]
+  let selectedType = 'title' //show title menu by default
+  let selectedToken = null
+async function renderShop(filterToken = null){
+  selectedToken = filterToken
+  const container = document.getElementById('miscContent')
+  const divTitle = document.getElementById('divTitle')
+  container.innerHTML = ''
+  const cTermButton = document.createElement('button')
+  const buttonWrapper = document.createElement('div')
+  buttonWrapper.className = 'shop-nav-container'
+  cTermButton.addEventListener('click', async () => { selectedType='terminalCustom', await renderShop(selectedToken) })
+    cTermButton.textContent = 'Terminal Themes'
+    
+  const titleButton = document.createElement('button')
+  titleButton.textContent = 'User Titles'
+  titleButton.addEventListener('click', async () => {selectedType='title', await renderShop(selectedToken) })
+  divTitle.textContent = 'Shop'
+  buttonWrapper.appendChild(titleButton)
+  buttonWrapper.appendChild(cTermButton)
+  container.appendChild(buttonWrapper)
+  shopItems.forEach(item => {
+    const matchesCategory = item.type === selectedType;
+    const matchesToken = !selectedToken || item.cost.hasOwnProperty(selectedToken);
+
+    if (matchesToken && matchesCategory){
+      const div = document.createElement('div')
+      div.className = 'shop-item'
+      const displayCost = selectedToken 
+        ? `${selectedToken}: ${item.cost[selectedToken]}` 
+        : Object.entries(item.cost).map(([k,v]) => `${k}: ${v}`).join(' | ');
+
+      div.innerHTML = `
+      <div class="shop-header">
+      <span class="item-name">${item.name}</span>
+      </div>
+      <div class="shop-cost">
+      ${displayCost}
+      </div>
+      <button class="buy-btn">Purchase</button>
+      `
+      div.querySelector('.buy-btn').addEventListener('click', async () => {
+        const user = firebase.auth().currentUser
+        if (!user){
+          appendToTerminal('Login required to purchase and earn points!')
+          return
+        }
+        const userRef = db.collection('users').doc(user.uid)
+        try{
+          const doc = await userRef.get()
+          const data = doc.data() || {}
+          const tokens = data.speedTokens || {}
+          const inventory = data.inventory || {}
+          
+          const ownedList = inventory[item.type] || []
+          if (ownedList.includes(item.id)){
+            const button = div.querySelector('.buy-btn')
+            button.textContent = 'Owned!'
+            button.disabled = true
+            return
+          }
+          let canAfford = true
+          
+          for (const [token, cost] of Object.entries(item.cost)){
+            if ((tokens[token] || 0) < cost){
+              canAfford = false
+            }
+          }
+          if (!canAfford){
+            const button = div.querySelector('.buy-btn')
+            button.disabled = true
+            button.textContent = "Not enough tokens"
+            
+            return
+          }
+          const updates = {}
+          for (const [token, cost] of Object.entries(item.cost)){
+            updates[`speedTokens.${token}`] = 
+            firebase.firestore.FieldValue.increment(-cost)
+            
+          }
+          updates[`inventory.${item.type}`] = 
+          firebase.firestore.FieldValue.arrayUnion(item.id)
+          await userRef.set(updates, {merge: true})
+          appendToTerminal(`Purchased ${item.name}!`)
+          await renderShop(selectedToken)
+        } catch (err){
+          console.error("Failed buying item:", err)
+          appendToTerminal("Purchase failed! :(")
+        }
+      })
+    container.appendChild(div)
+      
+    }
+    
+  })
+  
+  
+}
+function bindTokenCounters(userRef, achievementArr) {
+  userRef.onSnapshot((doc) => {
+    const data = doc.data() || {};
+    const tokens = data.speedTokens || {};
+
+    achievementArr.forEach(a => {
+      const el = document.getElementById(`${a}Counter`);
+      if (el) {
+        el.textContent = tokens[a] || 0;
+      }
+    });
+  });
+}
+document.getElementById('achievement').addEventListener('click', async () => {
+  const user = firebase.auth().currentUser
+  if (user){
+    const miscellanious = document.getElementById('miscContent')
+    let achievementArr = ["skid", "hacker", "nsa", "cpu"]
+    const timeArr = {
+      skid: "5 minute",
+      hacker: "3 minute",
+      nsa: "1 minute",
+      cpu: "30 second"
+    }
+    miscellanious.innerHTML = '';
+    let divTitle = document.getElementById('divTitle')
+    divTitle.textContent = 'Shop Prototype (Items not equippable yet)'
+    achievementArr.forEach((a) => {
+      const tokenDiv = document.createElement('div');
+      tokenDiv.className = 'Tokens';
+      
+      tokenDiv.innerHTML = `
+      <div class='Tokens'> 
+      <img src='${a}.png'>
+      <h5 class='explanation'> 
+      Earn ${a} tokens by completing challenge (first try) on the ${timeArr[a]} timer
+      </h5>
+      <p id='${a}Counter'>0</p>
+      <button id='${a}button'>${a.toUpperCase()} SHOP</button>
+      </div>
+      `
+      miscellanious.appendChild(tokenDiv)
+      document.getElementById(`${a}button`).addEventListener('click', async () => {
+        selectedToken = a
+        await renderShop(a)
+      })
+    })
+    const userRef = db.collection('users').doc(user.uid);
+    bindTokenCounters(userRef, achievementArr)
+    if (!right)toggleRightMenu()
+  }
+})
 document.getElementById('challengesDone').addEventListener('click', async () => {
   const user = firebase.auth().currentUser;
   if (!user){
@@ -265,6 +479,7 @@ function resetSpeeds() {
     hackSpeed = false;
     nsaSpeed = false;
     insaneSpeed = false;
+    speed='';
     noTime.style.backgroundColor = ''
     skid.style.backgroundColor = ''
     hacker.style.backgroundColor = ''
@@ -277,22 +492,22 @@ noTime.addEventListener('click', () => {
   appendToTerminal('Timer Challenge Cleared.')
 })
 skid.addEventListener('click', () => { 
-    resetSpeeds(); skidSpeed = true; skid.style.backgroundColor = 'green'; 
+    resetSpeeds(); skidSpeed = true; speed='skid'; skid.style.backgroundColor = 'green'; 
     appendToTerminal('Patch the Vulnerability Before Red Team Exploits in 5 minutes!');
 }); 
 
 hacker.addEventListener('click', () => { 
-    resetSpeeds(); hackSpeed = true; hacker.style.backgroundColor = 'green';
+    resetSpeeds(); hackSpeed = true; speed='hacker'; hacker.style.backgroundColor = 'green';
     appendToTerminal('Patch the Vulnerability Before Red Team Exploits in 3 minutes!');
 }); 
 
 nsa.addEventListener('click', () => { 
-    resetSpeeds(); nsaSpeed = true; nsa.style.backgroundColor = 'green';
+    resetSpeeds(); nsaSpeed = true; speed='nsa'; nsa.style.backgroundColor = 'green';
     appendToTerminal('Patch the Vulnerability Before Red Team Exploits in 1 minute!');
 }); 
 
 insane.addEventListener('click', () => { 
-    resetSpeeds(); insaneSpeed = true; insane.style.backgroundColor = 'green';
+    resetSpeeds(); insaneSpeed = true; speed='cpu'; insane.style.backgroundColor = 'green';
     appendToTerminal('Patch the Vulnerability Before Red Team Exploits in !!! THIRTY SECONDS !!!');
 });
 
@@ -909,20 +1124,39 @@ if (light) {
     .doc(currentQuestion.title);
     try{
       const doc = await completedRef.get();
-      if (!doc.exists || score > doc.data().score){
-      await completedRef.set({
-        completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+       const updatingData = {
+         completedAt: firebase.firestore.FieldValue.serverTimestamp(),
         score: score,
         time: elapsedSeconds,
         program: currentQuestion.title,
         insecureLines: currentQuestion.insecureLines
-      }, {merge:true})}
+      }
+      if (!doc.exists){
+      if (speed){
+        updatingData.speed = speed
+        await completedRef.set(updatingData)
+        const userRef = db.collection('users').doc(user.uid);
+        const achievementUpdate = {}
+        achievementUpdate[`speedTokens.${speed}`] = firebase.firestore.FieldValue.increment(1)
+        await userRef.update(achievementUpdate).catch(async (err) => {
+                  await userRef.set({speedTokens: {[speed]: 1}}, { merge: true });
+        })
+        appendToTerminal(`Earned achievement ${speed}!`)
+        
+      } else {
+        await completedRef.set(updatingData)
+      } 
       const challengeButtons = document.querySelectorAll(`[data-idx]`)
       challengeButtons.forEach(btn => {
         if (btn.textContent.includes(currentQuestion.title)){
           btn.textContent += '✅'
         }
       })
+      } else if (score > doc.data().score){
+      await completedRef.set(updatingData, {merge:true})
+      appendToTerminal('New high score!')
+}
+      
     }catch (error){
       console.error("Error marking completion", error)
     }
