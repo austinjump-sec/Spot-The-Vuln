@@ -1,6 +1,6 @@
 # Spot-The-Vuln 🔍
 
-Learn reverse engineering with a **gamified approach**! Spot real vulnerabilities across multiple programming languages while competing on global leaderboards.
+Learn reverse engineering with a **gamified approach**! Spot real vulnerabilities across multiple programming languages while competing on global leaderboards. Challenges sourced from **real** vulnerable code spotted in bug bounties and breaches using CVEfixes for authenticity!
 
 ---
 
@@ -11,12 +11,18 @@ Learn reverse engineering with a **gamified approach**! Spot real vulnerabilitie
 Just click the link above, sign in with GitHub, and start spotting vulnerabilities!
 
 ---
+## 🤔 Why did I build this? 
+As a studying pentester, I found that most CTFs lack intense visualization, spotting, and teaching, of code-centric exploits (especially ASM and IAC).
+So I designed a CTF style of my own that involves static visualization,  timer pressure, and competition within finding exploitable lines of code in large code chunks, and rewards players with detailed exploit information. 
 
 ## ✨ Features
 
 - **🎮 Gamified Learning**: Solve real vulnerabilities in JavaScript, PHP, SQL, C, and x86 Assembly
 - **🏆 Global Leaderboards**: Compete worldwide, track personal bests, earn daily streaks
-- **🐛 Real-World Vulnerabilities**: Buffer overflows, SQL injection, RCE, XSS, prototype pollution, and more
+- **🏅 Achievements**: Timer-based achievements earn you tokens for the shop
+- **🛒 Cosmetics Shop**: Earn terminal themes and titles from timer-based challenges
+- **⭐ Mastery Titles**: Level up your current languages title by completing questions on that title 
+- **🐛 Real-World Vulnerabilities**: Sourced from real breaches and bug bounties using CVEfixes
 - **🔧 Interactive Debugger**: Step through assembly execution with live register and stack visualization
 - **⚡ Intelligent Scoring**: Time-based scoring with accuracy bonuses for quick detection
 - **🔐 GitHub Integration**: Sign in with GitHub to save progress and compete globally
@@ -30,9 +36,11 @@ Just click the link above, sign in with GitHub, and start spotting vulnerabiliti
 2. **Choose a language**: JavaScript, PHP, SQL, C, or Assembly x86
 3. **Select a challenge** and difficulty level
 4. **Spot the vulnerabilities** in the code
-5. **Optional timer challenges**: Add time pressure (5min, 3min, 1min, or 30sec)
-6. **View exploit details** for each vulnerability you find
-7. **Climb the leaderboard** with your score
+5. **Earn XP** and gain language mastery titles
+6. **Optional timer challenges**: Earns achievements to get tokens
+7. **Buy titles and themes** to customize terminal and earn bragging rights
+8. **View exploit details** for each vulnerability you find
+9. **Climb the leaderboard** with your score
 
 ---
 
@@ -57,7 +65,7 @@ Want to contribute challenges or improve the platform?
 - **Backend**: Firebase (Authentication, Firestore)
 - **Auth**: GitHub OAuth via FirebaseUI
 - **Hosting**: Firebase Hosting
-
+- **Sourcing**: CVEfixes to find real world vulnerable code snipbits, and format it in the JSON tree. For ASM, I use objdump -d on an exploitable c program to get static heap, stack, and regs
 ### Local Development
 ```bash
 # Clone the repository
