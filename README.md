@@ -53,7 +53,10 @@ So I designed a CTF style of my own that involves static visualization,  timer p
 | **SQL** | SQL injection, Excessive privileges, Blind SQLi, Second-order injection |
 | **C** | Buffer overflow, Format strings, Integer underflow, Use-after-free (UAF) |
 | **Assembly x86** | Hardcoded comparisons, Stack pivots, Write-what-where, ROP gadgets |
+| **Terraform** | Unrestricted public access, Wildcard Principal, Excessive S3 permissions, Run as Root |
 
+## ⚖️ Credits and Licensing
+This project is licensed under the Apache License 2.0. Code challenges are sourced from real-world vulnerabilities via the CVEfixes dataset and remain the property of their respective original authors. These snippets are used here for educational and transformative purposes under Fair Use.⚖️
 ---
 
 ## 🛠️ For Developers
