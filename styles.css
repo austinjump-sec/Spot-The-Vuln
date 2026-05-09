@@ -35,7 +35,7 @@
 .history-item:hover {
   background: rgba(3, 252, 73, 0.1);
   border-left: 2px solid var(--primary);
-  padding-left: 16px; /* "Slide" effect on hover */
+  padding-left: 16px;
 }
 
 .prompt {
@@ -62,40 +62,37 @@
 }
 .Tokens {
   background: rgba(0, 0, 0, 0.6);
-  border-left: 2px solid var(--primary); /* Thinner border */
+  border-left: 2px solid var(--primary);
   border-radius: 4px;
-  padding: 8px;           /* Reduced padding */
+  padding: 8px;        
   margin: 5px auto;
-  
-  /* Critical changes for tiny windows: */
-  width: 90%;             /* Fits any small width */
-  max-width: 260px;       /* Keeps it from getting too big */
-  box-sizing: border-box; /* Ensures padding doesn't add to width */
-  
+  width: 90%;             
+  max-width: 260px;      
+  box-sizing: border-box; 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;               /* Tight spacing between items */
+  gap: 4px;              
   font-family: monospace;
-  font-size: 12px;        /* Smaller base font */
+  font-size: 12px;    
 }
 
 .Tokens img {
-  width: 40px; /* Smaller icon */
+  width: 40px;
   height: 40px;
   margin: 0;
 }
 
 .explanation {
   color: var(--primary);
-  font-size: 0.75rem; /* Tiny secondary text */
+  font-size: 0.75rem; 
   margin: 5px 0;
   opacity: 0.8;
   text-align: center;
 }
 
 .Tokens p {
-  font-size: 1.4rem; /* Smaller counter */
+  font-size: 1.4rem;
   color: #fff;
   margin: 0;
   font-weight: bold;
@@ -106,7 +103,7 @@
   border: 1px solid rgba(3, 252, 73, 0.5);
   color: var(--primary);
   padding: 4px 12px;
-  font-size: 0.7rem; /* Compact button text */
+  font-size: 0.7rem; 
   cursor: pointer;
   text-transform: uppercase;
   transition: 0.2s;
@@ -377,8 +374,6 @@ body {
     font-family: monospace;
     outline: none;
     width: 100%;
-    
-    /* FIXES START HERE */
     background-color: #000000 !important; 
     display: block;                       
     box-sizing: border-box;               
@@ -452,7 +447,7 @@ body {
 }
 
 #termInput {
-  flex-shrink: 0;    /* Prevents the input from being squished */
+  flex-shrink: 0;   
   background: transparent;
   color: var(--primary);
   border: none;
@@ -486,7 +481,7 @@ background-color: black;
 #debugger-controls{
 display: flex; justify-content: center; gap: 10px; margin-top: 10px;
 }
-/* Optional: Authentic Scanline effect */
+
 #terminal::before {
   content: " ";
   display: block;
@@ -499,7 +494,7 @@ display: flex; justify-content: center; gap: 10px; margin-top: 10px;
   pointer-events: none;
 }
 
-/* Custom Scrollbar for the terminal */
+
 #terminal::-webkit-scrollbar {
   width: 8px;
 }
@@ -516,15 +511,15 @@ display: flex; justify-content: center; gap: 10px; margin-top: 10px;
 
 #timerButtons {
   display: flex;
-  align-items: center; /* Vertically centers text with buttons */
-  gap: 10px;          /* Space between p and buttons */
+  align-items: center;
+  gap: 10px; 
   font-family: sans-serif;
 }
 
 #tChallenge {
-  font-size: 0.85rem;   /* Small enough to read, not in the way */
-  color: var(--primary);      /* Neon Green */
-  margin: 0;           /* Removes default paragraph spacing */
+  font-size: 0.85rem;   
+  color: var(--primary);     
+  margin: 0;        
   font-weight: bold;
 }
 
@@ -555,13 +550,13 @@ h1 {
 .code-line {
     padding: 2px 5px;
     font-family: monospace;
-    white-space: pre; /* Keeps assembly spacing */
+    white-space: pre;
 }
 
 #title-container {
   display: inline-flex;
   align-items: center;
-  color: var(--primary); /* Green text color for title */
+  color: var(--primary); 
 }
 
 
@@ -571,18 +566,18 @@ h1 {
   left: 0;
   width: 100%;
   display: flex;
-  justify-content: center; /* Centers the tabs */
+  justify-content: center;
   gap: 30px;
   padding: 15px 0;
-  background: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
-  backdrop-filter: blur(5px); /* Modern blur effect */
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px); 
   z-index: 100;
 }
 
 #btns button {
   background: none;
   border: none;
-  border-bottom: 2px solid transparent; /* Invisible border by default */
+  border-bottom: 2px solid transparent;
   color: var(--primary);
   font-family: monospace;
   font-size: 1rem;
@@ -593,13 +588,13 @@ h1 {
   letter-spacing: 1px;
 }
 
-/* Hover effect */
+
 #btns button:hover {
-  color: var(--primary); /* Bright green on hover */
+  color: var(--primary); 
   border-bottom: 2px solid rgba(3, 252, 73, 0.4);
 }
 
-/* The active "current" tab highlight */
+
 #btns button.active {
   color: var(--primary);
   text-shadow: 0 0 8px rgba(3, 252, 73, 0.6);
@@ -613,16 +608,16 @@ h1 {
 
 
 
-/* The animation definition */
+
 @keyframes terminal-flash {
   0% { background-color: rgba(255, 0, 0, 0); }
   50% { background-color: rgba(255, 0, 0, 0.7); }
   100% { background-color: rgba(255, 0, 0, 0); }
 }
 
-/* The class we will add via JS */
+
 .error-flicker {
-  animation: terminal-flash 0.2s ease-in-out 3; /* Flashes 3 times in 0.6s */
+  animation: terminal-flash 0.2s ease-in-out 3; 
 }
 
  button {
@@ -666,7 +661,7 @@ h1 {
     justify-content: space-between;
     border-bottom: 1px solid #1a3300;
 }
-/* Dialog Base Styling */
+
 .cyber-modal {
   background: var(--bg-dark);
   border: 1px solid var(--primary);
@@ -682,7 +677,7 @@ h1 {
   background: rgba(0, 0, 0, 0.85);
 }
 
-/* Header & Badges */
+
 .modal-header h1 {
   margin: 0 0 10px 0;
   font-family: 'Courier New', monospace;
@@ -701,7 +696,7 @@ h1 {
   color: var(--primary);
 }
 
-/* Body & Vulnerability List */
+
 .section-label {
   font-size: 0.8rem;
   opacity: 0.7;
@@ -721,7 +716,7 @@ h1 {
 .vuln-item .prompt { color: var(--primary); margin-right: 8px; }
 .hidden-text { opacity: 0.4; }
 
-/* Buttons */
+
 .modal-footer {
   display: flex;
   flex-direction: column;
@@ -772,7 +767,7 @@ h1 {
 }
 .side-menu-container {
   position: fixed;
-  left: -300px; /* hidden properly */
+  left: -300px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -781,15 +776,15 @@ h1 {
   transition: left 0.3s ease;
 }
 
-/* ACTIVE STATE */
+
 .side-menu-container.active {
   left: 0;
 }
 
-/* MAIN PANEL */
+
 #accountMenu {
   width: 280px;
-  background: #050505; /* softer than pure black */
+  background: #050505; 
   border: 1px solid rgba(43,255,0,0.2);
   border-right: none;
   padding: 20px;
@@ -799,7 +794,7 @@ h1 {
   gap: 12px;
 }
 
-/* PROFILE IMAGE */
+
 #userPfp {
   width: 55px;
   height: 55px;
@@ -808,14 +803,14 @@ h1 {
   border: 1px solid rgba(43,255,0,0.4);
 }
 
-/* WELCOME TEXT */
+
 #welcomeText {
   text-align: center;
   font-size: 0.9rem;
   color: var(--primary);
 }
 
-/* BUTTONS */
+
 #accountMenu button {
   background: transparent;
   border: 1px solid rgba(43,255,0,0.2);
@@ -832,7 +827,7 @@ h1 {
   background: rgba(43,255,0,0.1);
 }
 
-/* STREAK TEXT */
+
 #streakMessage {
   font-size: 0.8rem;
   text-align: center;
@@ -840,7 +835,7 @@ h1 {
   line-height: 1.3;
 }
 
-/* STREAK CIRCLE */
+
 #dailyStreak {
   background: #000;
   border: 1px solid var(--primary);
@@ -856,14 +851,14 @@ h1 {
   box-shadow: 0 0 8px rgba(43,255,0,0.1);
 }
 
-/* FIRE ICON ALIGN */
+
 #fireicon {
   width: 28px;
   height: 28px;
   margin-left: 5px;
 }
 
-/* SIDE TOGGLE STRIP */
+
 #rightButton {
   width: 6px;
   height: 70px;
