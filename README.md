@@ -3,7 +3,8 @@
 Learn reverse engineering with a **gamified approach**! Spot real vulnerabilities across multiple programming languages while competing on global leaderboards. Challenges sourced from **real** vulnerable code spotted in bug bounties and breaches using CVEfixes for authenticity!
 
 ---
-<img width="1651" height="908" alt="image" src="https://github.com/user-attachments/assets/a5ed216a-f4a2-4595-a3fc-a7e1aee310f6" />
+<img width="1649" height="917" alt="image" src="https://github.com/user-attachments/assets/d8da3cf7-1dcf-4e4d-b464-92c77a213435" />
+
 
 ## 🚀 **PLAY NOW** ▶️
 
