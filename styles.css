@@ -1,8 +1,120 @@
 :root {
-  --primary: #5cfa23; /* Neon Green */
+  --primary: #5cfa23; 
   --bg-dark: #0d1117;
   --glass: rgba(255, 255, 255, 0.05);
   --border: rgba(92, 250, 35, 0.2);
+}
+.cyber-list-header {
+  font-family: monospace;
+  color: #03fc49;
+  font-size: 1.2rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(3, 252, 73, 0.3);
+  text-shadow: 0 0 5px rgba(3, 252, 73, 0.5);
+}
+
+.no-data {
+  font-family: monospace;
+  color: rgba(3, 252, 73, 0.6);
+  font-style: italic;
+  padding: 10px;
+}
+
+.history-item {
+  font-family: monospace;
+  background: rgba(0, 20, 0, 0.3);
+  border-left: 2px solid transparent;
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  transition: all 0.2s ease;
+}
+
+.history-item:hover {
+  background: rgba(3, 252, 73, 0.1);
+  border-left: 2px solid var(--primary);
+  padding-left: 16px; /* "Slide" effect on hover */
+}
+
+.prompt {
+  color: var(--primary);
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+.history-item strong {
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.history-score {
+  color: var(--primary);
+  font-size: 0.85rem;
+}
+
+.history-date {
+  color: #666;
+  font-size: 0.7rem;
+  margin-left: 20px;
+  margin-top: 2px;
+}
+.Tokens {
+  background: rgba(0, 0, 0, 0.6);
+  border-left: 2px solid var(--primary); /* Thinner border */
+  border-radius: 4px;
+  padding: 8px;           /* Reduced padding */
+  margin: 5px auto;
+  
+  /* Critical changes for tiny windows: */
+  width: 90%;             /* Fits any small width */
+  max-width: 260px;       /* Keeps it from getting too big */
+  box-sizing: border-box; /* Ensures padding doesn't add to width */
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;               /* Tight spacing between items */
+  font-family: monospace;
+  font-size: 12px;        /* Smaller base font */
+}
+
+.Tokens img {
+  width: 40px; /* Smaller icon */
+  height: 40px;
+  margin: 0;
+}
+
+.explanation {
+  color: var(--primary);
+  font-size: 0.75rem; /* Tiny secondary text */
+  margin: 5px 0;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.Tokens p {
+  font-size: 1.4rem; /* Smaller counter */
+  color: #fff;
+  margin: 0;
+  font-weight: bold;
+}
+
+.Tokens button {
+  background: transparent;
+  border: 1px solid rgba(3, 252, 73, 0.5);
+  color: var(--primary);
+  padding: 4px 12px;
+  font-size: 0.7rem; /* Compact button text */
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: 0.2s;
+}
+
+.Tokens button:hover {
+  color: #000;
+   background-color: var(--primary);
 }
 
 body {
@@ -19,17 +131,80 @@ body {
   display: inline-block;
   min-width: 100px;
 }
+
+.shop-item {
+  border: 2px solid var(--primary);
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 8px;
+  background: rgba(43, 255, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.shop-item:hover {
+  box-shadow: var(--primary);
+}
+
+.shop-item.rarity-legendary {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.shop-item.rarity-epic {
+  border-color: #9d4edd;
+  background: rgba(157, 78, 221, 0.05);
+}
+
+.shop-item.rarity-rare {
+  border-color: #3a86ff;
+  background: rgba(58, 134, 255, 0.05);
+}
+
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.item-name {
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.item-type {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.item-preview {
+  font-size: 2rem;
+  margin: 10px 0;
+}
+
+.buy-btn, .equip-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.equip-btn {
+  background: #0000;
+}
+
+.equip-btn:hover {
+  background: var(--primary);
+}
 #title-container img { margin-left: 10px; width: 40px; height: 40px; }
 .light-letter {
     font-family: 'Courier New', monospace;
     font-size: 3rem;
     font-weight: bold;
-    color: #1a1a1a; /* Off color when not pwned */
+    color: #1a1a1a; 
     text-shadow: none;
     transition: all 0.3s ease;
 }
 
-/* The "Pwned" State */
+
 .light-letter.active {
     color: #6fff00;
     text-shadow: 0 0 10px #6fff00, 0 0 20px #6fff00;
@@ -57,20 +232,19 @@ body {
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   text-align: center;
-  /*background-image: url('https://mir-s3-cdn-cf.behance.net/project_modules/disp/e4316a93890387.5e70ade47b737.gif');*/
-}
+ }
 
 
 #side-menu-containerR {
   position: fixed;
   top: 50%;
-  right: -300px; /* hidden */
+  right: -300px; 
   transform: translateY(-50%);
   width: 300px;
   height: 520px;
 
   background: #050505;
-  border-left: 1px solid rgba(43,255,0,0.25);
+  border-left: 1px solid var(--primary);
   box-shadow: -10px 0 25px rgba(0,0,0,0.9);
 
   border-radius: 10px 0 0 10px;
@@ -84,15 +258,14 @@ body {
   z-index: 1000;
 }
 
-/* ACTIVE */
+
 #side-menu-containerR.active {
   right: 0px;
 }
 
-/* 🔥 PROTRUDING BUTTON */
 #exit {
   position: absolute;
-  left: -45px; /* pushes it OUTSIDE the panel */
+  left: -45px;
   top: 50%;
   transform: translateY(-50%);
 
@@ -100,46 +273,44 @@ body {
   padding: 10px 5px;
 
   background: #050505;
-  color: #2bff00;
+  color: var(--primary);
 
-  border: 1px solid rgba(43,255,0,0.3);
+  border: 1px solid var(--primary);
   border-right: none;
 
   font-family: monospace;
   cursor: pointer;
   line-height: 1.1;
 
-  box-shadow: 0 0 10px rgba(43,255,0,0.4);
+  box-shadow: 0 0 10px var(--primary);
 
   transition: all 0.2s ease;
 }
 
-/* HOVER */
+
 #exit:hover {
-  background: #2bff00;
+  background: var(--primary);
   color: #000;
 }
 
-/* TITLE */
+
 #divTitle {
-  color: #2bff00;
+  color: var(--primary);
   font-family: monospace;
   border-bottom: 1px solid rgba(43,255,0,0.2);
   padding-bottom: 8px;
 }
 
-/* CONTENT */
+
 #miscContent {
   flex: 1;
   overflow-y: auto;
-  color: rgba(43,255,0,0.8);
+  color: var(--primary);
 }
 
 #gradientBar{
    height: 100%;
-   width: 1%; /* Or set dynamically based on progress */
-  
-  /* Gray -> Yellow -> Orange -> Red */
+   width: 1%; 
   background-image: linear-gradient(
     to right,     
     #ffeb3b 33%,   
@@ -154,17 +325,14 @@ body {
   display: none;
 }
 #side-menu-containerR #tier {
-  background: linear-gradient(135deg, #2bff00 0%, #13fc03 100%);
-  color: #000000; /* dark text for contrast */
+  background: var(--primary);
+  color: #000000;
   font-weight: 700;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   padding: 12px 20px;
   margin: 10px 0;
   border-radius: 12px;
-  box-shadow:
-    0 0 5px #2bff00,
-    0 0 15px #13fc03,
-    0 0 20px #2bff00;
+  box-shadow: 5px var(--primary);
   text-align: center;
   cursor: default;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -173,32 +341,29 @@ body {
 
 #side-menu-containerR #tier:hover {
   transform: scale(1.05);
-  box-shadow:
-    0 0 10px #6fff00,
-    0 0 30px #39ff00,
-    0 0 40px #6fff00;
+
 }
 #terminal {
   display: flex;
   flex-direction: column;
-  height: 100px; /* Or whatever fixed height you want */
+  height: 100px; 
   background-color: #0d0d0d;
   border: 2px solid #333;
-  color: #6fff00;
+  color: var(--primary);
   padding: 10px;
-  overflow: hidden; /* Terminal itself shouldn't scroll */
+  overflow: hidden; 
 
   font-family: monospace;
   
 }
 
 #terminal-content {
-  flex-grow: 1;      /* Takes up all remaining space */ /* Only this part scrolls */
+  flex-grow: 1;     
   margin-bottom: 10px;
   flex: 1;
-  color: #6fff00;
+  color: var(--primary);
   font-size: 1rem;
-  word-wrap: break-word; /* Prevents huge strings from breaking layout */
+  word-wrap: break-word;
   font-family: monospace;
   
 }
@@ -208,19 +373,17 @@ body {
     color: #00ff41;
     border: none;
     border-top: 1px solid #222;
-    padding: 8px; /* Changed from padding-top to keep it even */
+    padding: 8px;
     font-family: monospace;
     outline: none;
     width: 100%;
     
     /* FIXES START HERE */
-    background-color: #000000 !important; /* Force true black */
-    display: block;                       /* Ensures it behaves as a box */
-    box-sizing: border-box;               /* Prevents width 100% from leaking outside parent */
+    background-color: #000000 !important; 
+    display: block;                       
+    box-sizing: border-box;               
 }
 
-
-/* Optional: Authentic Scanline effect */
 #terminal::before {
   content: " ";
   display: block;
@@ -232,11 +395,66 @@ body {
   background-size: 100% 4px, 3px 100%;
   pointer-events: none;
 }
+.token-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: var(--primary);
+  border: 1px solid #2bff00;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2bff00;
+  box-shadow: 0 0 8px rgba(43, 255, 0, 0.25);
+}
+
+.token-icon {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.token-info {
+  flex-grow: 1;
+}
+
+.token-title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.token-description {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #a0f08c;
+}
+
+.token-count {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.token-button {
+  background-color: var(--primary);
+  color: #000;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.token-button:hover {
+  background-color: #1fbe00;
+}
 
 #termInput {
   flex-shrink: 0;    /* Prevents the input from being squished */
   background: transparent;
-  color: #00ff41;
+  color: var(--primary);
   border: none;
   border-top: 1px solid #222;
   padding-top: 8px;
@@ -246,8 +464,28 @@ body {
   min-height: 10px;
   resize: none;
 }
-
-
+#debugger-ui{
+display: flex;
+ gap: 20px; 
+color: var(--primary); 
+font-family: monospace;
+}
+#lineTracker{
+color: var(--primary)
+}
+#timer{
+color: var(--primary);
+ font-family: monospace; 
+margin: 10px 0; 
+font-size: 1.2rem;
+}
+#h5{
+color: var(--primary); 
+background-color: black;
+}
+#debugger-controls{
+display: flex; justify-content: center; gap: 10px; margin-top: 10px;
+}
 /* Optional: Authentic Scanline effect */
 #terminal::before {
   content: " ";
@@ -285,7 +523,7 @@ body {
 
 #tChallenge {
   font-size: 0.85rem;   /* Small enough to read, not in the way */
-  color: #39FF14;      /* Neon Green */
+  color: var(--primary);      /* Neon Green */
   margin: 0;           /* Removes default paragraph spacing */
   font-weight: bold;
 }
@@ -312,7 +550,7 @@ h1 {
   box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
   white-space: pre-wrap;
   font-family: Monospace;
-  color: #03fc49;
+  color: var(--primary);
 }
 .code-line {
     padding: 2px 5px;
@@ -323,7 +561,7 @@ h1 {
 #title-container {
   display: inline-flex;
   align-items: center;
-  color: #2bff00; /* Green text color for title */
+  color: var(--primary); /* Green text color for title */
 }
 
 
@@ -345,7 +583,7 @@ h1 {
   background: none;
   border: none;
   border-bottom: 2px solid transparent; /* Invisible border by default */
-  color: rgba(3, 252, 73, 0.5); /* Subtle dim green text */
+  color: var(--primary);
   font-family: monospace;
   font-size: 1rem;
   padding: 5px 10px;
@@ -357,14 +595,13 @@ h1 {
 
 /* Hover effect */
 #btns button:hover {
-  color: #03fc49; /* Bright green on hover */
+  color: var(--primary); /* Bright green on hover */
   border-bottom: 2px solid rgba(3, 252, 73, 0.4);
 }
 
 /* The active "current" tab highlight */
 #btns button.active {
-  color: #03fc49;
-  border-bottom: 2px solid #03fc49;
+  color: var(--primary);
   text-shadow: 0 0 8px rgba(3, 252, 73, 0.6);
 }
 
@@ -402,7 +639,7 @@ h1 {
     position: absolute;
     display: none;
     background: #000;
-    border: 1px solid #2bff00;
+    border: 1px solid var(--primary);
     box-shadow: 0px 5px 15px rgba(43, 255, 0, 0.3);
     z-index: 1000;
     min-width: 200px;
@@ -414,7 +651,7 @@ h1 {
 }
 
 .dropdown-header {
-    background: #2bff00;
+    background: var(--primary);
     color: #000;
     padding: 5px 10px;
     font-weight: bold;
@@ -423,7 +660,7 @@ h1 {
 
 .dropdown-item {
     padding: 10px;
-    color: #2bff00;
+    color: var(--primary);
     cursor: pointer;
     display: flex;
     justify-content: space-between;
@@ -522,7 +759,7 @@ h1 {
 
 .btn-ghost {
   background: transparent;
-  color: #ff4336; /* Red for close */
+  color: #ff4336; 
   font-size: 0.8rem;
   opacity: 0.6;
 }
@@ -530,7 +767,7 @@ h1 {
 .btn-ghost:hover { opacity: 1; }
 
 .dropdown-item:hover {
-    background: #13fc03;
+    background: var(--primary);
     color: #000;
 }
 .side-menu-container {
@@ -556,7 +793,7 @@ h1 {
   border: 1px solid rgba(43,255,0,0.2);
   border-right: none;
   padding: 20px;
-  color: #eaeaea;
+  color: var(--primary);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -575,14 +812,14 @@ h1 {
 #welcomeText {
   text-align: center;
   font-size: 0.9rem;
-  color: rgba(43,255,0,0.8);
+  color: var(--primary);
 }
 
 /* BUTTONS */
 #accountMenu button {
   background: transparent;
   border: 1px solid rgba(43,255,0,0.2);
-  color: #2bff00;
+  color: var(--primary);
   padding: 8px;
   border-radius: 5px;
   font-family: monospace;
@@ -591,7 +828,7 @@ h1 {
 }
 
 #accountMenu button:hover {
-  border-color: #2bff00;
+  border-color: var(--primary);
   background: rgba(43,255,0,0.1);
 }
 
@@ -599,14 +836,14 @@ h1 {
 #streakMessage {
   font-size: 0.8rem;
   text-align: center;
-  color: rgba(43,255,0,0.6);
+  color: var(--primary);
   line-height: 1.3;
 }
 
 /* STREAK CIRCLE */
 #dailyStreak {
   background: #000;
-  border: 1px solid #2bff00;
+  border: 1px solid var(--primary);
   border-radius: 50%;
   height: 35px;
   width: 250px;
@@ -614,9 +851,9 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2bff00;
+  color: var(--primary);
   font-weight: bold;
-  box-shadow: 0 0 8px rgba(43,255,0,0.4);
+  box-shadow: 0 0 8px rgba(43,255,0,0.1);
 }
 
 /* FIRE ICON ALIGN */
@@ -635,10 +872,10 @@ h1 {
   cursor: pointer;
 }
 
-/* VERTICAL BUTTON */
+
 #challengesLoad {
   background: #050505;
-  color: #2bff00;
+  color: var(--primary);
   border: 1px solid rgba(43,255,0,0.3);
   border-left: none;
   font-family: monospace;
@@ -649,7 +886,7 @@ h1 {
 }
 
 #challengesLoad:hover {
-  background: #2bff00;
+  background: var(--primary);
   color: #000;
 }
 .lvl-diff {
@@ -666,10 +903,12 @@ h1 {
     font-family: monospace;
 }
 #pel{
+    background-color: rgba(0,0,0,0.5);
+    color: var(--primary);
     font-family: monospace;
 }
 textarea {
-  width: 100%;
+  width: 100%;`
   background: rgba(0,0,0,0.3);
   border: 1px solid var(--border);
   color: white;
