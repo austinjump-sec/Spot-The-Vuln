@@ -1,0 +1,130 @@
+[
+  {
+    "title": "Web-Shell",
+    "diff": 4,
+    "code": "1  <?php\n2  include(\"config.php\");\n3  \n4  $userId = $_GET['id'];\n5  $page = $_GET['page'];\n6  \n7  \n8  $query = \"SELECT * FROM users WHERE id = \" . $userId;\n9  $result = mysqli_query($conn, $query);\n10 $row = mysqli_fetch_assoc($result);\n11 \n12 echo \"<h1>User: \" . $row['username'] . \"</h1>\";\n13 \n14 \n15 if (isset($page)) {\n16     include(\"pages/\" . $page . \".php\");\n17 }\n18 \n19 \n20 if ($row['role'] == 'user') {\n21     echo \"<a href='edit.php?id=\" . $row['id'] . \"'>Edit Profile</a>\";\n22 }\n23 ?>",
+    "insecureLines": {
+      "8": {
+        "name": "SQL Injection",
+        "vuln": "User input directly concatenated into query allows database compromise."
+      },
+      "16": {
+        "name": "Local File Inclusion",
+        "vuln": "Unvalidated include() allows directory traversal and arbitrary file execution."
+      },
+      "21": {
+        "name": "XSS/IDOR",
+        "vuln": "Unescaped output allows XSS; direct object reference exposes unauthorized data."
+      }
+    }
+  },
+ {
+    "title": "Processor",
+    "diff": 5,
+    "code": "1  <?php\n2  // Enterprise-grade batch reporting engine\n3  require_once('db_connector.php');\n4  \n5  $serialized_pref = $_COOKIE['user_prefs'];\n6  $report_config = unserialize(base64_decode($serialized_pref));\n7  \n8  $sort_order = $_POST['sort'] ?? 'ASC';\n9  $limit = $_GET['limit'] ?? 10;\n10 \n11 // Use late-binding query construction for 'performance'\n12 $sql = \"SELECT id, meta, data FROM logs WHERE status = 'active' \";\n13 \n14 if ($report_config->filter_enabled) {\n15     $sql .= \"AND category = '\" . $report_config->category . \"' \";\n16 }\n17 \n18 $sql .= \"ORDER BY id $sort_order LIMIT $limit\";\n19 \n20 $results = $conn->query($sql);\n21 \n22 while ($row = $results->fetch_assoc()) {\n23     $data = json_decode($row['data']);\n24     eval(\"echo 'Result: ' . \" . $data->formatter . \";\");\n25 }\n26 ?>",
+    "insecureLines": {
+      "6": {
+        "name": "PHP Object Injection",
+        "vuln": "unserialize() on user-controlled cookies allows an attacker to manipulate object properties or trigger 'magic methods' for Remote Code Execution (RCE)."
+      },
+      "15": {
+        "name": "Second-Order SQL Injection",
+        "vuln": "Values extracted from the unserialized object are trusted and concatenated into the query, allowing injection via the 'category' property."
+      },
+      "18": {
+        "name": "Order By/Limit Injection",
+        "vuln": "The 'sort' and 'limit' parameters are injected into positions where traditional prepared statements often fail, allowing for time-based blind SQLi."
+      },
+      "24": {
+        "name": "Code Injection via Data-Store",
+        "vuln": "eval() executing content directly from a database column (which might have been tampered with via the previous SQLi) creates a perfect RCE pivot."
+      }
+    }
+  },
+  {
+  "title": "Bridge",
+  "diff": 9,
+  "code": "1  <?php\n2  class Logger {\n3      public $logFile = \"/tmp/app.log\";\n4      public $exitMsg = \"Shutdown\";\n5      function __destruct() {\n6          file_put_contents($this->logFile, $this->exitMsg, FILE_APPEND);\n7      }\n8  }\n9  \n10 $config = [\"mode\" => \"prod\", \"key\" => \"secret\"];\n11 extract($_GET); \n12 \n13 if (preg_match('/^user_/', $theme)) {\n14     include(\"./themes/\" . $theme . \".php\");\n15 }\n16 \n17 $data = unserialize(base64_decode($_COOKIE['session']));\n18 \n19 if (isset($data['debug_file'])) {\n20     assert(\"strpos('\" . $data['debug_file'] . \"', 'log') !== false\");\n21 }\n22 ?>",
+  "insecureLines": {
+    "11": {
+      "name": "Variable Overwriting",
+      "vuln": "The extract() function with default flags imports GET parameters into the local symbol table. An attacker can overwrite the $theme variable or even the $config array to bypass logic or gain control over subsequent includes."
+    },
+    "17": {
+      "name": "PHP Object Injection",
+      "vuln": "Passing untrusted input to unserialize() allows an attacker to instantiate the Logger class. By controlling logFile and exitMsg, they can trigger a 'POP chain' to write a PHP web shell to the server when the object is destroyed."
+    },
+    "20": {
+      "name": "Remote Code Execution via Assert",
+      "vuln": "The assert() function in older PHP versions (or specific configurations) evaluates strings as PHP code. The concatenation allows an attacker to escape the strpos call with \"'), phpinfo(), ('\" to execute arbitrary PHP commands."
+    }
+  }
+},
+{"title": "Mass Inject",
+"diff": 6,
+"lang":"php",
+    "xp":28,
+"code": "1 gr['gr_use_access'] = 0;\n2 sql_common = \" gr_subject = '{_POST['gr_subject']}',\n3 set gr_subject = '{_POST['gr_subject'][$k]}',\n4 $co['co_html'] = 2;\n5 $co['co_skin'] = 'basic';\n6 co['co_mobile_skin'] = 'basic';\n7 \n8 nw_subject = '{_POST['nw_subject']}',\n9 (mb_id = )_POST['mb_id'];\n10 (po_point = )_POST['po_point'];\n11 (po_content = )_POST['po_content'];\n12 $write['bg_no'] = bg_no;\n13",
+"insecureLines": {
+"2": {
+"name": "Unsanitized SQL Injection",
+"vuln": "Directly interpolating _POST data into a SQL string. An attacker can break out of the single quotes to execute arbitrary SQL commands (e.g., ' OR 1=1 --)."},"3": {"name": "Array-Based SQL Injection","vuln": "Even when accessed via an index [k], the raw POST data is trusted. This allows for bulk database manipulation or data exfiltration via blind SQLi."
+},
+"8": {
+"name": "Second-Order Injection Vector",
+"vuln": "Another instance of raw _POST interpolation. If this variable is used in a multi-query execution, it can lead to full database compromise."},
+"9": {"name": "Direct Variable Assignment from Superglobal",
+"vuln": "Assigning _POST['mb_id'] directly to a variable often used in session or permission checks. This can lead to Administrative Account Takeover if the mb_id is not validated against the current session."
+  }
+}},
+{
+  "title":"Cross",
+  "diff":5,
+  "lang":"php",
+    "xp":27,
+  "code":"1<?php } // foreach ?>\n2<?php } // if ?>\n3<div id='contactsPaginationBottom'><?php echo\n4advanced_pagination($contacts_pagination, get_url('dashboard', 'search_contacts',\n5array('search_for' => $search_term, 'page' => '#PAGE#'))) ?></div>\n6</div>\n7<?php } else { ?>\n8- <div><?php echo lang('no search result for', $search_term) ?></div>\n9+ <div><?php echo lang('no search result for', clean($search_term)) ?></div>\n10<?php } // if ?>",
+  "insecureLines":{
+    "4":{
+      "name":"Reflected XSS in Pagination URL",
+      "vuln":"The $search_term variable is passed to get_url and then echoed via advanced_pagination. If these functions do not perform URL and HTML encoding an attacker can inject script tag into the pagination links"
+    },
+    "8":{
+      "name":"Reflected XSS via Direct Echo",
+      "vuln": "The raw $search_term variable is passed to the lang function and echoed directly to HTML. An attacker can provide an XSS payload to execute arbitrary JavaScript in user's browser"
+    }
+   
+  }
+  
+},
+{
+  "title":"Attribute",
+  "diff":4,
+  "lang":"php",
+  "xp":18,
+  "code":"' 1 return [\n 2     'id' => $class->getId(),\n 3     'text' => $text,\n 4     'leaf' => true,\n 5 -   'icon' => $class->getIcon() ? $class->getIcon() : $defaultIcon,\n 6 +   'icon' => $class->getIcon() ? htmlspecialchars($class->getIcon()) : $defaultIcon,\n 7     'cls' => 'pimcore_class_icon',\n 8     'propertyVisibility' => $class->getPropertyVisibility(),\n 9     'enableGridLocking' => $class->isEnableGridLocking(),\n10 ];\n11 };'",
+  "insecureLines": {
+    "5": {
+      "name": "Stored Cross-Site Scripting (XSS) via Attribute Injection",
+      "vuln": "Unsanitized output of the 'icon' property allows an attacker to inject malicious scripts or HTML attributes. By controlling the icon path value in the database, a red teamer can achieve code execution in the context of an administrative user's session when this UI element renders."
+    }
+  }
+},
+{
+  "title":"Sequel",
+  "diff":5,
+  "lang":"php",
+  "xp":24,
+  "code": "1 if ($baseQuery) {\n2 $total = $db->fetchOne($baseQuery['count']);\n3 \n4 $order = '';\n5 if ($sort && $dir) {\n6 - $order = ' ORDER BY ' . $db->quoteIdentifier($sort) . ' ' . $dir;\n7 + $dir = ((strtoupper($dir) === 'ASC') ? 'ASC' : 'DESC');\n8 + $order = ' ORDER BY ' . $db->quoteIdentifier($sort) . ' ' .$dir;\n9 }\n10 \n11 $sql = $baseQuery['data'] . $order;\n12 if ($offset !== null && $limit) {\n13 $sql .= ' LIMIT $offset,$limit';\n14 @@ -123,11 +124,11 @@ class Sql extends AbstractAdapter\n15 if ($drillDownFilters) {\n16 $havingParts = [];\n17 $db = Db::get();\n18 foreach ($drillDownFilters as $field => $value) {\n19 if ($value !== '' && $value !== null) {\n20 - $havingParts[] = '$field = ' . $db->quote($value);\n21 + $havingParts[] = ($db->quoteIdentifier($field) .' = ' . $db->quote($value));\n22 }\n23 }",
+  "insecureLines": {
+    "6": {
+      "name": "SQL Injection (Unvalidated Sort Direction)",
+      "vuln": "The '$dir' variable is concatenated directly into the ORDER BY clause without validation. A red teamer can inject malicious SQL commands to bypass security constraints or exfiltrate database schema information via error-based techniques."
+    },
+    "20": {
+      "name": "SQL Injection (Unquoted Identifier)",
+      "vuln": "Injecting the '$field' variable directly into the HAVING clause allows for Second-Order SQL injection. By manipulating metadata or field names, an adversary can break out of the query structure to gain unauthorized data access."
+    }
+  }
+}
+
+]

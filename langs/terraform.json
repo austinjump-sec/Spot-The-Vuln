@@ -1,0 +1,56 @@
+[
+{
+    "title": "Configuration",
+    "diff": 2,
+    "code": "1  resource \"example_resource\" \"example\" {\n2    name = \"example-data\"\n3    \n4    public_access = true\n5    encryption_enabled = false\n6    \n7    tags = {\n8      environment = \"prod\"\n9    }\n10 }",
+    "insecureLines": {
+      "4": {
+        "name": "Unrestricted Public Access",
+        "vuln": "Enabling public access can allow unauthorized entities to view or interact with the resource."
+      },
+      "5": {
+        "name": "Missing Encryption",
+        "vuln": "Disabling encryption at rest exposes sensitive data if the underlying storage is compromised."
+      }
+    }
+},
+{
+  "title": "Identity",
+  "diff": 4,
+  "code": "1  resource \"aws_s3_bucket\" \"data\" {\n2    bucket = \"company-backups\"\n3  }\n4  \n5  resource \"aws_s3_bucket_policy\" \"allow_access\" {\n6    bucket = aws_s3_bucket.data.id\n7    policy = <<EOF\n8  {\n9    \"Version\": \"2012-10-17\",\n10   \"Statement\": [\n11     {\n12       \"Effect\": \"Allow\",\n13       \"Principal\": \"*\",\n14       \"Action\": [\"s3:GetObject\", \"s3:PutObject\"],\n15       \"Resource\": \"arn:aws:s3:::company-backups/*\"\n16     }\n17   ]\n18  }\n19  EOF\n20 }\n21 \n22 resource \"aws_iam_role\" \"lambda_role\" {\n23   name = \"lambda-service-role\"\n24   assume_role_policy = jsonencode({\n25     Statement = [{ Action = \"sts:AssumeRole\", Effect = \"Allow\", Principal = { Service = \"://amazonaws.com\" } }]\n26   })\n27 }\n28 \n29 resource \"aws_iam_role_policy_attachment\" \"admin_attach\" {\n30   role       = aws_iam_role.lambda_role.name\n31   policy_arn = \"arn:aws:iam::aws:policy/AdministratorAccess\"\n32 }",
+  "insecureLines": {
+    "13": {
+      "name": "Wildcard Principal",
+      "vuln": "Setting principal to '*' allows anyone on the internet to access the bucket contents."
+    },
+    "14": {
+      "name": "Excessive Permissions (S3)",
+      "vuln": "Allowing both Get and Put to the public enables data exfiltration and ransomware-style file replacement."
+    },
+    "31": {
+      "name": "Over-privileged IAM Role",
+      "vuln": "Attaching AdministratorAccess to a service role violates the principle of least privilege, enabling massive lateral movement if the Lambda is compromised."
+    }
+  }
+},
+{
+  "title": "High-Severity",
+  "diff": 5,
+  "code": "1  apiVersion: v1\n2  kind: Pod\n3  metadata:\n4    name: admin-helper-pod\n5  spec:\n6    containers:\n7    - name: helper-container\n8      image: nginx:latest\n9      securityContext:\n10       privileged: true\n11       runAsUser: 0\n12     volumeMounts:\n13     - mountPath: /host-root\n14       name: host-fs\n15   volumes:\n16   - name: host-fs\n17     hostPath:\n18       path: /",
+  "insecureLines": {
+    "10": {
+      "name": "Privileged Container",
+      "vuln": "Lifts all container isolation, granting the pod near-total control over the host node kernel."
+    },
+    "11": {
+      "name": "Run as Root",
+      "vuln": "Running as UID 0 allows the process to bypass local file permissions inside the container and, in this setup, on the host."
+    },
+    "18": {
+      "name": "HostPath Mount (Root)",
+      "vuln": "Mounting the host's root directory allows a compromised container to read/write any file on the underlying node, including SSH keys and secrets."
+    }
+  }
+}
+
+]

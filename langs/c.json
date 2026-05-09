@@ -1,0 +1,118 @@
+[
+  {
+    "title": "Overflow",
+    "diff": 6,
+    "code": "1  #include <stdio.h>\n2  #include <string.h>\n3  \n4  void process_data(char *user_input) {\n5      char internal_buffer[32];\n6      \n7      \n8      \n9      strcpy(internal_buffer, user_input); \n10 \n11     printf(\"Processing: %s\\n\", internal_buffer);\n12 }\n13 \n14 int main(int argc, char *argv[]) {\n15     if (argc > 1) {\n16         \n17         \n18         printf(argv[1]); \n19         process_data(argv[1]);\n20     }\n21     return 0;\n22 }",
+    "insecureLines": {
+      "9": {
+        "name": "Buffer Overflow",
+        "vuln": "Can be exploited to cause unexpected behavior, useful for many attack vectors."
+      },
+      "18": {
+        "name": "Format String Vulnerability",
+        "vuln": "Allows leaking stack data or writing to memory via format specifiers."
+      }
+    }
+  },
+  {
+    "title": "Kernel",
+    "diff": 6,
+    "code": "1  #include <stdio.h>\n2  #include <stdlib.h>\n3  #include <unistd.h>\n4  #include <sys/mman.h>\n5  \n6  typedef struct { \n7      char tag[8]; \n8      void (*callback)(char *); \n9  } session_t;\n10 \n11 void logger(char *msg) { printf(\"Log: %s\\n\", msg); }\n12 \n13 void handle_request(int req_type, char *payload, size_t len) {\n14     session_t *session = malloc(sizeof(session_t));\n15     session->callback = logger;\n16 \n17     // Vulnerability: Integer Underflow in length check\n18     if (len - 1 > 1024) return;\n19 \n20     // Vulnerability: Heap Overflow via signed/unsigned mismatch\n21     char *buffer = (char *)mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_ANON|MAP_PRIVATE, -1, 0);\n22     read(0, buffer, len + 16);\n23 \n24     // Vulnerability: Use-After-Free / Race Condition\n25     if (req_type == 0xDEAD) {\n26         free(session);\n27     }\n28 \n29     session->callback(buffer); // Execution of freed pointer\n30 }\n31 \n32 int main() {\n33     char data[2048];\n34     handle_request(56013, data, 0); \n35     return 0;\n36 }",
+    "insecureLines": {
+      "18": {
+        "name": "Integer Underflow",
+        "vuln": "If 'len' is 0, 'len - 1' wraps to the maximum value of size_t, bypassing the bounds check entirely."
+      },
+      "22": {
+        "name": "Heap/Mmap Buffer Overflow",
+        "vuln": "Reading 'len + 16' bytes into a buffer of size 'len' allows overwriting adjacent memory metadata or mapped structures."
+      },
+      "29": {
+        "name": "Use-After-Free (UAF)",
+        "vuln": "The 'session' object is freed on a specific 'req_type' but the callback is still invoked, allowing an attacker to hijack the instruction pointer (EIP/RIP) if they can reclaim that heap chunk."
+      }
+    }
+  },
+  {
+  "title": "Ion-Vault",
+  "diff": 8,
+  "code": "1  #include <stdio.h>\n2  #include <string.h>\n3  #include <stdlib.h>\n4  \n5  typedef struct {\n6      int priority;\n7      char label[12];\n8  } config_t;\n9  \n10 void process_config(char *input) {\n11     config_t *cfg = (config_t *)malloc(sizeof(config_t));\n12     char secret_key[16] = \"INTERNAL_USE_ONLY\";\n13     char dest[12];\n14 \n15     // Hidden off-by-one in restricted copy\n16     for (int i = 0; i <= sizeof(dest); i++) {\n17         dest[i] = input[i];\n18     }\n19 \n20     if (cfg->priority == 0x41414141) {\n21         system(\"cat /opt/app/vault.key\");\n22     }\n23     \n24     free(cfg);\n25 }\n26 \n27 int main(int argc, char **argv) {\n28     if (argc > 1) {\n29         process_config(argv[1]);\n30     }\n31     return 0;\n32 }",
+  "insecureLines": {
+    "11": {
+      "name": "Heap Determinism / Uninitialized Memory",
+      "vuln": "The malloc'd 'cfg' struct is never initialized. In certain glibc versions or thread-local caches, this chunk may contain stale data from previous allocations (like 'secret_key'), allowing an attacker to influence the 'priority' check."
+    },
+    "16": {
+      "name": "Stack-Based Off-By-One Buffer Overflow",
+      "vuln": "The loop condition 'i <= sizeof(dest)' allows writing one byte past the end of 'dest'. On many architectures, this overwrites the least significant byte of the saved frame pointer or an adjacent local variable, leading to control flow hijacking."
+    },
+    "21": {
+      "name": "Arbitrary Command Execution (Privilege Escalation)",
+      "vuln": "The 'system' call uses a hardcoded path but relies on the environment. If the PATH variable is not sanitized or the binary is SUID, an attacker can manipulate the environment to trigger unauthorized file access."
+    }
+  }
+},
+{
+  "title": "Denial",
+  "diff": 10,
+     "lang":"c",
+    "xp":38,
+  "code": "1 ble_npl_time_t now;\n2 int32_t next_exp_in;\n3 uint16_t conn_handle;\n4 for (;;) {\n5 conn_handle = BLE_HS_CONN_HANDLE_NONE;\n6 next_exp_in = BLE_HS_FOREVER;\n7 now = ble_npl_time_get();\n8 ble_hs_lock();\n9 /* This loop performs one of two tasks:\n10 * 1. Determine if any connections need to be terminated due to timeout.\n11 * If so, break out of the loop and terminate the connection. This\n12 * function will need to be executed again.\n13 * 2. Otherwise, determine when the next timeout will occur. /\n14 SLIST_FOREACH(conn, &ble_hs_conns, bhc_next) {\n15 if (!(conn->bhc_flags & BLE_HS_CONN_F_TERMINATING)) {\n16 / Check each connection's rx fragment timer. If too much time\n17 * passes after a partial packet is received, the connection is\n18 * terminated. /\n19 if (conn->bhc_rx_chan != NULL) {\n20 time_diff = conn->bhc_rx_timeout - now;\n21 if (time_diff <= 0) {\n22 / ACL reassembly has timed out. Remember the connection\n23 * handle so it can be terminated after the mutex is\n24 * unlocked. /\n25 conn_handle = conn->bhc_handle;\n26 break;\n27 }\n28 / Determine if this connection is the soonest to time out. /\n29 if (time_diff < next_exp_in) {\n30 next_exp_in = time_diff;\n31 }\n32 }\n33 #endif\n34 #if BLE_HS_ATT_SVR_QUEUED_WRITE_TMO\n35 / Check each connection's rx queued write timer. If too much\n36 * time passes after a prep write is received, the queue is\n37 * cleared. /\n38 time_diff = ble_att_svr_ticks_until_tmo(&conn->bhc_att_svr, now);\n39 / ACL reassembly has timed out. Remember the connection\n40 * handle so it can be terminated after the mutex is\n41 * unlocked. /\n42 conn_handle = conn->bhc_handle;\n43 break;\n44 next_exp_in = time_diff;\n45 }\n46 ble_hs_unlock();\n47 / If a connection has timed out, terminate it. We need to repeatedly\n48 * call this function again to determine when the next timeout is. */\n49 if (conn_handle != BLE_HS_CONN_HANDLE_NONE) {\n50 ble_gap_terminate(conn_handle, BLE_ERR_REM_USER_CONN_TERM);\n51 continue;\n52 return next_exp_in;",
+  "insecureLines": {
+    "42":{
+      "name": "Unconditional execution leading to DOS",
+      "vuln": "It fails to check if a timeout occured (time_diff <=0) this causes the system to immediately identify the first connection it finds as timed out and terminates it leading to a DOS"
+    },
+    "43": {
+      "name": "Logic Bypass / Control Flow Hijack",
+      "vuln": "The unconditional break statement prevents the execution of expiration tracking (Line 44) and forces a loop exit. This allows an attacker to bypass legitimate timeout logic and trigger immediate, unintended connection termination."
+    }
+  }
+},
+{ "title": "Global Failure",
+"diff": 9,
+   "lang":"c",
+    "xp":30,
+"code": "1 passert(GLOBALS_ARE_RESET());\n2 char fromname[ADDRTOT_BUF];\n3 addrtot(&md->sender, 0, fromname, ADDRTOT_BUF);\n4 return v2N_INVALID_KE_PAYLOAD;\n5 passert(GLOBALS_ARE_RESET());\n6 passert(GLOBALS_ARE_RESET());\n7 reset_globals();\n8 passert(GLOBALS_ARE_RESET());",
+"insecureLines": {
+  "1": 
+  {"name": "Assert-Only State Validation",
+  "vuln": "The code uses 'passert' (likely a production-removable assertion) to check if globals are reset. If assertions are disabled in production builds, the check is skipped entirely, allowing the function to run with 'dirty' state from a previous request."
+    
+  },
+  "4": {
+    "name": "Resource Cleanup Bypass / State Leak",
+    "vuln": "The function returns 'v2N_INVALID_KE_PAYLOAD' immediately without calling 'reset_globals()'. This leaves the global state modified or 'dirty' for the next packet processor, leading to potential cross-session data leakage or logic corruption."},"7": {"name": "Delayed State Reset","vuln": "Global state is only reset at line 7, but lines 1-6 have already performed assertions and logical operations. This creates a race window or logic gap where the code relies on state that hasn't been explicitly cleared yet."
+      
+    }}},
+    {
+      "title":"Responder",
+      "diff":6,
+      "lang":"c",
+      "xp":23,
+      "code":"1 /* Strip block padding, if applicable /\n2 if ( is_block_cipher ( cipher ) ) {\n3 pad_len = tls_verify_padding ( tls, last );\n4 if ( pad_len < 0 ) {\n5 - rc = pad_len;\n6 - return rc;\n7 + / Assume zero padding length to avoid timing attacks */\n8 + pad_len = 0;\n9 }\n10 iob_unput ( last, pad_len );\n11 len -= pad_len;\n12 }",
+      "insecureLines": {
+        "5":{
+          "name": "Side-Channel Information Leakage",
+          "vuln": "The immediate error assignment establishes an observable state change that leaks critical metadata regarding the internal state of the decryption process"
+        },
+        "6": {
+          "name": "Non-constant Time Early Exit",
+          "vuln": "Aborting the process early allows attackers to use timing analysis between padding errors and MAC failures, eventually decrypting to plaintext"
+        }
+      }
+    },
+    {
+      "title":"null",
+      "diff":8,
+      "lang":"c",
+      "xp":32,
+  "code": "1 if (*write_info->magick == '\\0')\n2 (void) CopyMagickString(write_info->magick,images->magick,MagickPathExtent);\n3 p=images;\n4 for ( ; GetNextImageInList(p) != (Image *) NULL; p=GetNextImageInList(p))\n5 - if (p->scene >= GetNextImageInList(p)->scene)\n6 + {\n7 + register Image\n8 + *next;\n9 +\n10 + next=GetNextImageInList(p);\n11 + if (next == (Image *) NULL)\n12 + break;\n13 + if (p->scene >= next->scene)\n14 {\n15 register ssize_t\n16 i;",
+  "insecureLines": {
+    "5": {
+      "name": "Null Pointer Dereference (Out-of-Bounds Access)",
+      "vuln": "The loop condition checks for a next image, but the logic at line 5 immediately calls GetNextImageInList(p) and dereferences it without verifying the pointer. A red teamer can provide a crafted image sequence to trigger a crash (DoS) or potentially exploit the memory corruption state."
+    }
+  }
+}
+]
