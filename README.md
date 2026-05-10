@@ -23,7 +23,7 @@ So I designed a CTF style of my own that involves static visualization,  timer p
 - **🏆 Global Leaderboards**: Compete worldwide, track personal bests, earn daily streaks
 - **🏅 Achievements**: Timer-based achievements earn you tokens for the shop
 - **🛒 Cosmetics Shop**: Earn terminal themes and titles from timer-based challenges
-- **⭐ Mastery Titles**: Level up your current languages title by completing questions on that title 
+- **⭐ Mastery Titles**: Level up your current languages title by completing questions on that language 
 - **🐛 Real-World Vulnerabilities**: Sourced from real breaches and bug bounties using CVEfixes
 - **🔧 Interactive Debugger**: Step through assembly execution with live register and stack visualization
 - **⚡ Intelligent Scoring**: Time-based scoring with accuracy bonuses for quick detection
